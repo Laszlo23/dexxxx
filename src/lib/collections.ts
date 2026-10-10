@@ -144,6 +144,7 @@ type CollectionSummary = {
   address: Address;
   hero: boolean;
   blurb: string;
+  use: { title: string; body: string } | null;
   supply: number | null;
   floor: Floor;
   preview: NftMetadata | null;
@@ -215,6 +216,7 @@ export async function collectionBoard(): Promise<CollectionSummary[]> {
         address: collection.address,
         hero: collection.hero,
         blurb: collection.blurb,
+        use: collection.use ?? null,
         supply,
         floor,
         preview,

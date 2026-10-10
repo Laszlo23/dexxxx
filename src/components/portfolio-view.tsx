@@ -116,6 +116,7 @@ export function PortfolioView() {
                     <div className="p-3">
                       <p className="truncate text-sm">{nft.name}</p>
                       <p className="font-mono text-[11px] text-mist">{nft.collection}</p>
+                      {nft.use ? <p className="mt-1 text-xs leading-5 text-lime">{nft.use.title}</p> : null}
                     </div>
                   </a>
                 ))}
@@ -184,6 +185,7 @@ function WalletScene({ nft }: { nft: BagNft }) {
         </p>
         <h3 className="mt-1 text-xl tracking-tight">{nft.name}</h3>
         <p className="mt-2 max-w-xl text-sm leading-6 text-mist">{sceneLine(nft.name, wallet)}</p>
+        {nft.use ? <p className="mt-2 max-w-xl text-sm leading-6 text-paper">{nft.use.body}</p> : null}
         {wallet.holdings.length > 0 ? (
           <ul className="mt-3 max-w-md">
             {wallet.holdings.map((holding) => (

@@ -14,6 +14,8 @@ export type NftCollection = {
   supplyFn: SupplyFn;
   openseaSlug?: string;
   blurb: string;
+  /** A use this desk has checked. Absent when the picture is only a picture. */
+  use?: { title: string; body: string };
 };
 
 export const COLLECTIONS: readonly NftCollection[] = [
@@ -28,6 +30,10 @@ export const COLLECTIONS: readonly NftCollection[] = [
     supplyFn: "totalMinted",
     openseaSlug: "rare-friends-genesis",
     blurb: "1,024 on-chain friends. The mint that starts the Rare Friends economy.",
+    use: {
+      title: "Drawn in the contract",
+      body: "A Genesis friend is SVG stored in the contract, not a JPEG on a server. This desk has not found a wallet inside the picture.",
+    },
   },
   {
     slug: "stonkbrokers",
@@ -40,6 +46,10 @@ export const COLLECTIONS: readonly NftCollection[] = [
     supplyFn: "totalSupply",
     openseaSlug: "stonkbrokers-434284142",
     blurb: "4,444 brokers. Each one keeps a token-bound wallet for stock tokens.",
+    use: {
+      title: "The broker keeps an account",
+      body: "Each StonkBroker controls an ERC-6551 account. Tokens held there, including STONKBROKER, stay with the picture. When the picture moves, the account moves with it.",
+    },
   },
   {
     slug: "spritehood",
@@ -88,6 +98,10 @@ export const COLLECTIONS: readonly NftCollection[] = [
     supplyFn: "totalSupply",
     openseaSlug: "rhmachines",
     blurb: "10,000 machines that hold tokenized stocks in their own accounts.",
+    use: {
+      title: "The machine holds stock tokens",
+      body: "Each RH Machine controls an ERC-6551 account that can hold Robinhood stock tokens. The balances this desk reads are bound to the machine.",
+    },
   },
   {
     slug: "hashcats",
@@ -100,6 +114,10 @@ export const COLLECTIONS: readonly NftCollection[] = [
     supplyFn: "totalMinted",
     openseaSlug: "hash-cats",
     blurb: "Proof-of-work cats, drawn on-chain, one hash at a time.",
+    use: {
+      title: "A record of work",
+      body: "Each cat was mined with proof of work, and the art is drawn on chain. This desk has not found a wallet inside the cat.",
+    },
   },
   {
     slug: "pitboys",
@@ -124,6 +142,10 @@ export const COLLECTIONS: readonly NftCollection[] = [
     supplyFn: "totalSupply",
     openseaSlug: "onchainhoodies-",
     blurb: "6,000 fully on-chain hoodies. Token zero is a real hoodie.",
+    use: {
+      title: "Stored in the contract",
+      body: "The hoodie lives in the contract, including token zero. This desk has not found a wallet inside it.",
+    },
   },
   {
     slug: "dogihood",
@@ -148,9 +170,20 @@ export const COLLECTIONS: readonly NftCollection[] = [
     supplyFn: "totalSupply",
     openseaSlug: "ccff00-161927574",
     blurb: "10,000 on-chain neon marks. Each one keeps a wallet.",
+    use: {
+      title: "The picture is the wallet",
+      body: "Each CCFF00 controls an ERC-6551 account. That account can hold ETH, tokens, and other NFTs, and it was minted with 10,000 CCFF00. An agent can use the same account. When the picture moves, the account moves with it.",
+    },
   },
 ];
 
 export function findCollection(slug: string): NftCollection | undefined {
   return COLLECTIONS.find((collection) => collection.slug === slug);
+}
+
+export type PictureUse = { title: string; body: string };
+
+export function collectionUse(address: string): PictureUse | null {
+  const collection = COLLECTIONS.find((item) => item.address.toLowerCase() === address.toLowerCase());
+  return collection?.use ?? null;
 }

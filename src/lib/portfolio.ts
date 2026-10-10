@@ -1,6 +1,6 @@
 import { erc20Abi, getAddress, isAddress, zeroAddress, zeroHash, type Address, type Hex } from "viem";
 import { robinhood } from "@/config/chain";
-import { COLLECTIONS } from "@/data/collections";
+import { COLLECTIONS, collectionUse, type PictureUse } from "@/data/collections";
 import { TOKENS } from "@/config/tokens";
 import { formatDisplay } from "@/lib/format";
 import { publicClient } from "@/lib/public-client";
@@ -155,6 +155,7 @@ export type BagNft = {
   contract: Address;
   link: string;
   wallet: NftWallet | null;
+  use: PictureUse | null;
 };
 
 export type NftReading = {
@@ -168,6 +169,7 @@ export type NftReading = {
   /** The account contract is already deployed. Funds can sit at the address either way. */
   deployed: boolean;
   wallet: NftWallet | null;
+  use: PictureUse | null;
 };
 
 export type Portfolio = {
@@ -198,6 +200,28 @@ function pictureName(given: string | undefined, collectionName: string, id: stri
   const at = name.lastIndexOf(marker);
   const alreadyNamed = at !== -1 && !/\d/.test(name.charAt(at + marker.length));
   return alreadyNamed ? name : `${collectionName} #${id}`;
+}
+
+function useFor(contract: Address, kind: AccountKind | null): PictureUse | null {
+  const known = collectionUse(contract);
+  if (known) return known;
+  if (!kind) return null;
+  switch (kind) {
+    case "wallet":
+      return {
+        title: "The picture keeps an account",
+        body: "This contract publishes a token-bound account. Tokens and ETH in that account stay with the picture, and they move when the picture moves.",
+      };
+    case "agent":
+      return {
+        title: "A wallet an agent can use",
+        body: "This picture controls an ERC-6551 account an agent can use. The funds in it move with the picture.",
+      };
+    default: {
+      const unexpected: never = kind;
+      return unexpected;
+    }
+  }
 }
 
 function collectionFor(address: string) {
@@ -468,6 +492,7 @@ export async function readPortfolio(owner: Address): Promise<Portfolio> {
         contract: nft.contract,
         link: nft.opensea_url || `https://opensea.io/item/robinhood/${nft.contract}/${nft.identifier}`,
         wallet,
+        use: useFor(nft.contract, wallet?.kind ?? null),
       },
     ];
   });
@@ -558,6 +583,7 @@ export async function readNftBinding(contract: Address, id: string): Promise<Nft
     owner: ownerCall,
     deployed,
     wallet,
+    use: useFor(contract, wallet?.kind ?? null),
   };
   readingCache.set(cacheKey, { at: Date.now(), value });
   return value;

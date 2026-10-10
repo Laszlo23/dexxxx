@@ -15,6 +15,7 @@ export type CollectionCard = {
   address: Address;
   hero: boolean;
   blurb: string;
+  use: { title: string; body: string } | null;
   supply: number | null;
   floor: Floor;
   preview: { name: string; image: string; description: string } | null;
@@ -74,6 +75,7 @@ export function CollectionBoard({ compact = false }: { compact?: boolean }) {
                 <span className="font-mono text-xs text-mist">{card.symbol}</span>
               </div>
               <p className="text-sm text-mist">{card.blurb}</p>
+              {card.use ? <p className="text-sm leading-6 text-lime">{card.use.title}</p> : null}
               <p className="font-mono text-xs text-lime">
                 {card.supply === null ? "Supply unread" : `${formatCount(card.supply)} minted`}
                 {card.floor ? ` · floor ${card.floor.amount} ${card.floor.symbol}` : ""}

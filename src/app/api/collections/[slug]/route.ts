@@ -25,6 +25,7 @@ export async function GET(request: NextRequest, context: Context) {
         address: collection.address,
         hero: collection.hero,
         blurb: collection.blurb,
+        use: collection.use ?? null,
         idStart: collection.idStart,
       },
       supply,

@@ -19,6 +19,7 @@ type Page = {
     symbol: string;
     address: Address;
     blurb: string;
+    use: { title: string; body: string } | null;
   };
   supply: number;
   tokens: Token[];
@@ -149,6 +150,12 @@ export function CollectionView() {
             {shortAddress(page.collection.address)}
           </a>
         </p>
+        {page.collection.use ? (
+          <div className="mt-5 max-w-xl">
+            <p className="font-mono text-[11px] tracking-[0.18em] text-lime">WHAT IT DOES</p>
+            <p className="mt-2 text-sm leading-6 text-paper">{page.collection.use.body}</p>
+          </div>
+        ) : null}
       </StoryOpen>
       <MintPanel slug={slug} />
       {address ? (

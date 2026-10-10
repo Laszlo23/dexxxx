@@ -55,7 +55,7 @@ export function BoundView() {
       <StoryOpen
         kicker="ONE PICTURE"
         title="Funds bound to a picture."
-        lede="Paste a Robinhood NFT. The desk checks the account inside it, then the funds sitting there: a wallet, a wallet an agent can use, or a picture with nothing bound to it."
+        lede="A picture on a chain can be more than a JPEG. Paste one. The desk says whether it is a wallet, a wallet an agent can use, art stored in the contract, a record of work, or a picture with no use found."
       >
         {pending ? <p className="mt-3 font-mono text-[11px] tracking-[0.16em] text-lime">Reading the account bound to this picture.</p> : null}
         {error ? <p className="mt-3 text-sm text-danger">{error}</p> : null}
@@ -106,6 +106,16 @@ export function BoundView() {
             </p>
             <h2 className="mt-1 text-2xl tracking-tight">{reading.name}</h2>
             <p className="mt-3 max-w-xl text-sm leading-6 text-mist">{verdict(reading)}</p>
+            {reading.use ? (
+              <div className="mt-4 max-w-xl">
+                <p className="font-mono text-[11px] tracking-[0.18em] text-lime">WHAT IT DOES</p>
+                <p className="mt-2 text-sm leading-6 text-paper">{reading.use.body}</p>
+              </div>
+            ) : (
+              <p className="mt-4 max-w-xl text-sm leading-6 text-mist">
+                This desk has not found a wallet, on-chain art, or another use bound to this picture.
+              </p>
+            )}
             {reading.wallet && reading.wallet.holdings.length > 0 ? <Ledger holdings={reading.wallet.holdings} /> : null}
             <div className="mt-4 flex flex-wrap gap-x-4 gap-y-2 font-mono text-xs">
               <a className="text-gold" href={explorerAddress(reading.owner)} target="_blank" rel="noreferrer">
