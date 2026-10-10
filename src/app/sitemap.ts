@@ -13,6 +13,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/friends",
     "/collections",
     "/portfolio",
+    "/bound",
     "/trends",
     "/terms",
     "/privacy",

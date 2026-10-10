@@ -29,6 +29,11 @@ export const CARDS = {
     title: "Balances, NFTs, and their wallets",
     line: "The bag shows the tokens and the accounts inside the NFTs.",
   },
+  bound: {
+    kicker: "ONE PICTURE",
+    title: "Funds bound to an NFT",
+    line: "Paste a token. The desk reads the account inside it.",
+  },
   trends: {
     kicker: "THE TAPE",
     title: "Floors and the market notes",

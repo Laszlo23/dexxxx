@@ -1,4 +1,4 @@
-import { erc20Abi, isAddress, zeroAddress, zeroHash, type Address, type Hex } from "viem";
+import { erc20Abi, getAddress, isAddress, zeroAddress, zeroHash, type Address, type Hex } from "viem";
 import { robinhood } from "@/config/chain";
 import { COLLECTIONS } from "@/data/collections";
 import { TOKENS } from "@/config/tokens";
@@ -96,6 +96,23 @@ const discoverAbi = [
   },
 ] as const;
 
+const nftAbi = [
+  {
+    type: "function",
+    name: "ownerOf",
+    stateMutability: "view",
+    inputs: [{ name: "tokenId", type: "uint256" }],
+    outputs: [{ name: "", type: "address" }],
+  },
+  {
+    type: "function",
+    name: "name",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [{ name: "", type: "string" }],
+  },
+] as const;
+
 const TRACKED = [
   ...TOKENS,
   {
@@ -137,6 +154,19 @@ export type BagNft = {
   collection: string;
   contract: Address;
   link: string;
+  wallet: NftWallet | null;
+};
+
+export type NftReading = {
+  contract: Address;
+  id: string;
+  name: string;
+  collection: string;
+  image: string;
+  link: string;
+  owner: Address;
+  /** The account contract is already deployed. Funds can sit at the address either way. */
+  deployed: boolean;
   wallet: NftWallet | null;
 };
 
@@ -452,5 +482,83 @@ export async function readPortfolio(owner: Address): Promise<Portfolio> {
     more: scanned.more,
   };
   cache.set(key, { at: Date.now(), value });
+  return value;
+}
+
+const readingCache = new Map<string, { at: number; value: NftReading }>();
+
+export function parseNftQuery(raw: string): { contract: Address; id: string } | null {
+  const text = raw.trim();
+  if (!text) return null;
+  const addressMatch = text.match(/0x[a-fA-F0-9]{40}/);
+  const idMatch = text.match(/(?:#|\/|instance\/|:|\s)(\d{1,78})\s*$/);
+  if (addressMatch && idMatch && isAddress(addressMatch[0])) {
+    return { contract: getAddress(addressMatch[0]), id: idMatch[1] };
+  }
+  const named = text.match(/^(.+?)\s*#?\s*(\d{1,78})$/);
+  if (!named) return null;
+  const label = named[1].trim().toLowerCase();
+  const collection = COLLECTIONS.find(
+    (item) => item.slug === label || item.symbol.toLowerCase() === label || item.name.toLowerCase() === label,
+  );
+  if (!collection) return null;
+  return { contract: getAddress(collection.address), id: named[2] };
+}
+
+async function openSeaNft(contract: Address, id: string): Promise<RawNft | null> {
+  const key = process.env.OPENSEA_API_KEY;
+  if (!key) return null;
+  const response = await fetch(
+    `https://api.opensea.io/api/v2/chain/robinhood/contract/${contract}/nfts/${id}`,
+    { headers: { "x-api-key": key, accept: "application/json" }, signal: AbortSignal.timeout(8_000), cache: "no-store" },
+  );
+  if (!response.ok) return null;
+  const body = (await response.json()) as { nft?: RawNft };
+  return body.nft ?? null;
+}
+
+export async function readNftBinding(contract: Address, id: string): Promise<NftReading> {
+  const cacheKey = `${contract.toLowerCase()}:${id}`;
+  const cached = readingCache.get(cacheKey);
+  if (cached && Date.now() - cached.at < 20_000) return cached.value;
+
+  const known = knownBound(contract);
+  const [ownerCall, nameCall, code, discovered, sea] = await Promise.all([
+    publicClient.readContract({ address: contract, abi: nftAbi, functionName: "ownerOf", args: [BigInt(id)] }).catch(() => null),
+    publicClient.readContract({ address: contract, abi: nftAbi, functionName: "name" }).catch(() => null),
+    publicClient.getCode({ address: contract }),
+    known ? Promise.resolve(null) : discoverBound([contract]).catch(() => new Map<string, BoundWallet>()),
+    openSeaNft(contract, id).catch(() => null),
+  ]);
+  if (!code || code === "0x") throw new Error("That address has no contract on Robinhood.");
+  if (!ownerCall) throw new Error("This contract did not return an owner for that token.");
+
+  const config = known ?? discovered?.get(contract.toLowerCase());
+  const account = config ? ((await boundAccounts([{ contract, id, config }]))[0] ?? null) : null;
+  let wallet: NftWallet | null = null;
+  let deployed = false;
+  if (account && config) {
+    const [holdings, accountCode] = await Promise.all([
+      readHoldings([account]).then((rows) => rows[0] ?? []),
+      publicClient.getCode({ address: account }),
+    ]);
+    deployed = Boolean(accountCode && accountCode !== "0x");
+    wallet = { address: account, kind: config.kind, holdings };
+  }
+
+  const collection = collectionFor(contract);
+  const collectionName = collection?.name ?? sea?.collection ?? (typeof nameCall === "string" && nameCall ? nameCall : "NFT");
+  const value: NftReading = {
+    contract,
+    id,
+    name: pictureName(sea?.name, collectionName, id),
+    collection: collectionName,
+    image: sea?.display_image_url || sea?.image_url || "",
+    link: sea?.opensea_url || `https://opensea.io/item/robinhood/${contract}/${id}`,
+    owner: ownerCall,
+    deployed,
+    wallet,
+  };
+  readingCache.set(cacheKey, { at: Date.now(), value });
   return value;
 }
