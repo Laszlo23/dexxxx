@@ -1,8 +1,16 @@
 import { connection } from "next/server";
-import sharp from "sharp";
 import { deskCard } from "@/lib/og-card";
 import { parseNftQuery, readNftBinding } from "@/lib/portfolio";
 import { pictureShareLine } from "@/lib/share-line";
+
+function imageType(header: string, url: string): string {
+  const typed = header.split(";")[0]?.trim().toLowerCase() ?? "";
+  if (typed.startsWith("image/")) return typed;
+  if (url.endsWith(".svg")) return "image/svg+xml";
+  if (url.endsWith(".png")) return "image/png";
+  if (url.endsWith(".jpg") || url.endsWith(".jpeg")) return "image/jpeg";
+  return "";
+}
 
 async function cardImage(url: string): Promise<string | undefined> {
   if (!url.startsWith("https://")) return undefined;
@@ -12,15 +20,11 @@ async function cardImage(url: string): Promise<string | undefined> {
       signal: AbortSignal.timeout(8000),
     });
     if (!response.ok) return undefined;
-    const type = response.headers.get("content-type") ?? "";
-    if (!type.startsWith("image/")) return undefined;
+    const type = imageType(response.headers.get("content-type") ?? "", url);
+    if (!type) return undefined;
     const bytes = Buffer.from(await response.arrayBuffer());
-    if (bytes.length === 0 || bytes.length > 2_000_000) return undefined;
-    const png = await sharp(bytes, { density: 240 })
-      .resize(420, 630, { fit: "contain", background: { r: 9, g: 11, b: 8, alpha: 1 } })
-      .png()
-      .toBuffer();
-    return `data:image/png;base64,${png.toString("base64")}`;
+    if (bytes.length === 0 || bytes.length > 1_500_000) return undefined;
+    return `data:${type};base64,${bytes.toString("base64")}`;
   } catch {
     return undefined;
   }

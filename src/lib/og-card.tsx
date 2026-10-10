@@ -20,7 +20,7 @@ export function deskCard(input: { kicker: string; title: string; line: string; i
         }}
       >
         {picture ? (
-          <img src={picture} alt="" width={420} height={630} style={{ width: 420, height: 630, objectFit: "cover" }} />
+          <img src={picture} alt="" width={420} height={630} style={{ width: 420, height: 630, objectFit: "contain", backgroundColor: "#090b08" }} />
         ) : null}
         <div
           style={{
