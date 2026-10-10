@@ -4,8 +4,21 @@ import { formatDisplay, parseAmount } from "@/lib/format";
 import { quoteBest } from "@/lib/quote";
 import { poolToken } from "@/lib/swap-call";
 
+const QUOTE_TTL_MS = 8_000;
+const quoteCache = new Map<string, { at: number; body: string }>();
+
 export async function GET(request: NextRequest) {
   await connection();
+  const cacheKey = request.nextUrl.search;
+  const cached = quoteCache.get(cacheKey);
+  if (cached && Date.now() - cached.at < QUOTE_TTL_MS) {
+    return new Response(cached.body, {
+      headers: {
+        "content-type": "application/json",
+        "Cache-Control": "public, max-age=8",
+      },
+    });
+  }
   const tokenIn = findToken(request.nextUrl.searchParams.get("tokenIn") ?? "");
   const tokenOut = findToken(request.nextUrl.searchParams.get("tokenOut") ?? "");
   const amount = request.nextUrl.searchParams.get("amount") ?? "";
@@ -40,13 +53,27 @@ export async function GET(request: NextRequest) {
         { status: 404 },
       );
     }
-    return Response.json({
+    const twapGapBps =
+      quote.twapAmountOut && quote.twapAmountOut > 0n
+        ? Number(((quote.twapAmountOut - quote.amountOut) * 10_000n) / quote.twapAmountOut)
+        : null;
+    const body = JSON.stringify({
       fee: quote.fee,
       amountOut: quote.amountOut.toString(),
       amountOutMinimum: quote.amountOutMinimum.toString(),
       amountOutDisplay: formatDisplay(quote.amountOut, tokenOut.decimals),
       minimumDisplay: formatDisplay(quote.amountOutMinimum, tokenOut.decimals),
       priceImpactBps: quote.priceImpactBps,
+      twapDisplay: quote.twapAmountOut ? formatDisplay(quote.twapAmountOut, tokenOut.decimals) : null,
+      twapWindow: quote.twapWindow,
+      twapGapBps,
+    });
+    quoteCache.set(cacheKey, { at: Date.now(), body });
+    return new Response(body, {
+      headers: {
+        "content-type": "application/json",
+        "Cache-Control": "public, max-age=8",
+      },
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Quote failed.";

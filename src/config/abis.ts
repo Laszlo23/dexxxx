@@ -80,6 +80,41 @@ export const quoterAbi = [
   },
 ] as const;
 
+export const poolAbi = [
+  {
+    type: "function",
+    name: "token0",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [{ name: "", type: "address" }],
+  },
+  {
+    type: "function",
+    name: "slot0",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [
+      { name: "sqrtPriceX96", type: "uint160" },
+      { name: "tick", type: "int24" },
+      { name: "observationIndex", type: "uint16" },
+      { name: "observationCardinality", type: "uint16" },
+      { name: "observationCardinalityNext", type: "uint16" },
+      { name: "feeProtocol", type: "uint8" },
+      { name: "unlocked", type: "bool" },
+    ],
+  },
+  {
+    type: "function",
+    name: "observe",
+    stateMutability: "view",
+    inputs: [{ name: "secondsAgos", type: "uint32[]" }],
+    outputs: [
+      { name: "tickCumulatives", type: "int56[]" },
+      { name: "secondsPerLiquidityCumulativeX128s", type: "uint160[]" },
+    ],
+  },
+] as const;
+
 export const factoryAbi = [
   {
     type: "function",

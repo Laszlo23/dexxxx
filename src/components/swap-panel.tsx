@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { useSearchParams } from "next/navigation";
 import { erc20Abi, type Hex } from "viem";
 import {
@@ -14,8 +14,8 @@ import {
 } from "wagmi";
 import { robinhood } from "@/config/chain";
 import { SWAP_ROUTER_02 } from "@/config/contracts";
-import { findToken, TOKEN_GROUPS, TOKENS, type Token } from "@/config/tokens";
-import { explorerTx, feeLabel, parseAmount, slippageBps } from "@/lib/format";
+import { findToken, TOKEN_GROUPS, TOKENS, type Token, type TokenGroup } from "@/config/tokens";
+import { explorerTx, feeLabel, formatDisplay, parseAmount, slippageBps } from "@/lib/format";
 import { buildSwapCall } from "@/lib/swap-call";
 
 type QuoteBody = {
@@ -25,14 +25,54 @@ type QuoteBody = {
   amountOutDisplay: string;
   minimumDisplay: string;
   priceImpactBps: number;
+  twapDisplay: string | null;
+  twapWindow: number | null;
+  twapGapBps: number | null;
   amount: string;
   sell: string;
   buy: string;
   slippage: string;
 };
 
+const PAIRS = [
+  ["ETH", "USDG"],
+  ["USDG", "NVDA"],
+  ["ETH", "SPY"],
+  ["USDG", "TSLA"],
+  ["USDG", "AAPL"],
+] as const;
+
+const SLIPPAGE_PRESETS = ["0.1", "0.5", "1"] as const;
+
 function otherToken(symbol: string): Token {
   return TOKENS.find((token) => token.symbol !== symbol) ?? TOKENS[1];
+}
+
+function sizesFor(group: TokenGroup, symbol: string): string[] {
+  switch (group) {
+    case "Cash":
+      return symbol === "ETH" ? ["0.01", "0.1", "1"] : ["25", "100", "500"];
+    case "Desk":
+      return ["1000", "10000", "100000"];
+    case "Stocks":
+    case "Funds":
+      return ["0.1", "1", "5"];
+    default: {
+      const unknown: never = group;
+      return unknown;
+    }
+  }
+}
+
+function chipLabel(value: string): string {
+  const numeric = Number(value);
+  if (!Number.isFinite(numeric)) return value;
+  return numeric.toLocaleString("en-US");
+}
+
+function unitRate(amountIn: bigint, amountOut: string, sell: Token, buy: Token): string {
+  const perOne = (BigInt(amountOut) * 10n ** BigInt(sell.decimals)) / amountIn;
+  return formatDisplay(perOne, buy.decimals);
 }
 
 export function SwapPanel() {
@@ -53,6 +93,7 @@ export function SwapPanel() {
   const [pendingKey, setPendingKey] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const [hash, setHash] = useState<Hex | undefined>();
+  const [flipped, setFlipped] = useState(false);
 
   const { address, isConnected } = useAccount();
   const chainId = useChainId();
@@ -133,6 +174,8 @@ export function SwapPanel() {
     quote.sell === sell.symbol &&
     quote.buy === buy.symbol &&
     quote.slippage === slippage;
+  const pairHeld =
+    quote !== null && quote.sell === sell.symbol && quote.buy === buy.symbol && quote.amount === amount;
 
   async function approve() {
     if (!sellAddress || !amountIn) return;
@@ -180,9 +223,19 @@ export function SwapPanel() {
     setSell(buy);
     setBuy(sell);
     setAmount("");
+    setFlipped((current) => !current);
   }
 
-  let actionLabel = "Swap";
+  function takePair(sellSymbol: string, buySymbol: string) {
+    const nextSell = findToken(sellSymbol);
+    const nextBuy = findToken(buySymbol);
+    if (!nextSell || !nextBuy) return;
+    setSell(nextSell);
+    setBuy(nextBuy);
+    if (!parseAmount(amount, nextSell.decimals)) setAmount("");
+  }
+
+  let actionLabel = `Swap ${sell.symbol} for ${buy.symbol}`;
   let action: () => void = () => {
     void swap();
   };
@@ -197,7 +250,7 @@ export function SwapPanel() {
     actionLabel = "Enter an amount";
     disabled = true;
   } else if (quoting || !quoteFresh) {
-    actionLabel = "Quoting";
+    actionLabel = "Reading the pool";
     disabled = true;
   } else if (quoteError) {
     actionLabel = "No route";
@@ -214,25 +267,49 @@ export function SwapPanel() {
   }
 
   const impact = quoteFresh && quote ? quote.priceImpactBps : null;
+  const rate = quoteFresh && quote && amountIn ? unitRate(amountIn, quote.amountOut, sell, buy) : null;
+  const shownOut = pairHeld && quote ? quote.amountOutDisplay : "";
 
   return (
-    <section className="rounded-3xl border border-line bg-panel/90 p-4 shadow-2xl shadow-black/20 sm:p-5">
-      <div className="mb-4 flex items-end justify-between">
+    <section className="trade-sheen relative overflow-hidden rounded-[28px] border border-line bg-panel/95 p-4 shadow-[0_30px_80px_-36px_rgba(223,242,90,0.45)] sm:p-6">
+      <div className={`quote-scan absolute inset-x-0 top-0 h-0.5 bg-lime ${quoting ? "opacity-100" : "opacity-0"}`} />
+      <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="font-mono text-[11px] tracking-[0.22em] text-lime">UNISWAP V3</p>
-          <h1 className="text-2xl tracking-tight">Trade</h1>
+          <p className="font-mono text-[11px] tracking-[0.28em] text-lime">THE BOOK</p>
+          <h1 className="mt-1 font-mono text-3xl tracking-tight text-paper">
+            {sell.symbol}
+            <span className="mx-2 text-mist">/</span>
+            {buy.symbol}
+          </h1>
         </div>
-        <label className="text-right text-xs text-mist">
-          Slippage
-          <input
-            value={slippage}
-            onChange={(event) => setSlippage(event.target.value)}
-            inputMode="decimal"
-            className="mt-1 block w-20 rounded-xl border border-line bg-ink px-2 py-1 text-right font-mono text-sm text-paper"
-            aria-label="Slippage percent"
-          />
-        </label>
+        <p className="rounded-full border border-line px-3 py-1 font-mono text-[11px] tracking-wide text-mist">
+          Robinhood v3
+        </p>
       </div>
+
+      <div className="mt-4 flex flex-wrap gap-2">
+        {PAIRS.map(([from, to]) => {
+          const active = sell.symbol === from && buy.symbol === to;
+          return (
+            <Chip key={`${from}-${to}`} active={active} onClick={() => takePair(from, to)}>
+              {from}→{to}
+            </Chip>
+          );
+        })}
+      </div>
+
+      <p className="mt-4 min-h-7 font-mono text-sm text-paper" aria-live="polite">
+        {rate ? (
+          <>
+            1 {sell.symbol} <span className="text-mist">=</span>{" "}
+            <span className="text-lime">{rate}</span> {buy.symbol}
+          </>
+        ) : quoting ? (
+          <span className="text-mist">Reading the pool…</span>
+        ) : (
+          <span className="text-mist">Pick a size. The rate comes off the pool.</span>
+        )}
+      </p>
 
       <TokenField
         label="You pay"
@@ -244,16 +321,27 @@ export function SwapPanel() {
         amount={amount}
         onAmount={setAmount}
       />
-      <div className="relative z-10 -my-3 flex justify-center">
+      <div className="mt-2 flex flex-wrap gap-2">
+        {sizesFor(sell.group, sell.symbol).map((size) => (
+          <Chip key={size} active={amount === size} onClick={() => setAmount(size)}>
+            {chipLabel(size)}
+          </Chip>
+        ))}
+      </div>
+
+      <div className="relative z-10 -my-1 flex justify-center">
         <button
           type="button"
           onClick={flip}
-          className="rounded-full border border-line bg-ink px-3 py-1 text-sm text-lime"
+          className={`grid h-10 w-10 place-items-center rounded-full border border-lime/40 bg-ink text-lime shadow-[0_0_24px_-8px_rgba(223,242,90,0.8)] transition-transform duration-300 ${
+            flipped ? "rotate-180" : ""
+          }`}
           aria-label="Flip pair"
         >
           ↕
         </button>
       </div>
+
       <TokenField
         label="You receive"
         token={buy}
@@ -261,48 +349,147 @@ export function SwapPanel() {
           if (next.symbol === sell.symbol) setSell(buy);
           setBuy(next);
         }}
-        amount={quoteFresh && quote ? quote.amountOutDisplay : ""}
+        amount={shownOut}
         readOnly
+        live={Boolean(rate)}
       />
 
-      <div className="mt-4 space-y-1 font-mono text-xs text-mist">
-        {quoteFresh && quote ? (
-          <>
-            <p>
-              Minimum received {quote.minimumDisplay} {buy.symbol}
-            </p>
-            <p>
-              Fee tier {feeLabel(quote.fee)}
-              {impact !== null ? ` · impact ${(impact / 100).toFixed(2)}%` : ""}
-            </p>
-          </>
-        ) : null}
-        {quoting ? <p>Reading the book…</p> : null}
+      <AverageRail
+        windowSeconds={pairHeld ? (quote?.twapWindow ?? null) : null}
+        average={pairHeld ? (quote?.twapDisplay ?? null) : null}
+        gapBps={pairHeld ? (quote?.twapGapBps ?? null) : null}
+        symbol={buy.symbol}
+      />
+
+      <div className="mt-4 grid grid-cols-3 gap-2">
+        <Stat label="Minimum" value={quoteFresh && quote ? quote.minimumDisplay : "—"} />
+        <Stat label="Pool fee" value={quoteFresh && quote ? feeLabel(quote.fee) : "—"} />
+        <Stat label="Impact" value={impact === null ? "—" : `${(impact / 100).toFixed(2)}%`} />
+      </div>
+
+      <div className="mt-4 flex flex-wrap items-center gap-2">
+        <span className="font-mono text-[11px] tracking-[0.18em] text-mist">SLIPPAGE</span>
+        {SLIPPAGE_PRESETS.map((preset) => (
+          <Chip key={preset} active={slippage === preset} onClick={() => setSlippage(preset)}>
+            {preset}%
+          </Chip>
+        ))}
+        <input
+          value={slippage}
+          onChange={(event) => setSlippage(event.target.value)}
+          inputMode="decimal"
+          className="ml-auto w-16 rounded-full border border-line bg-ink px-3 py-1 text-right font-mono text-xs text-paper"
+          aria-label="Slippage percent"
+        />
+      </div>
+
+      <div className="mt-3 min-h-5 space-y-1 font-mono text-xs">
         {quoteError ? <p className="text-danger">{quoteError}</p> : null}
         {actionError ? <p className="text-danger">{actionError}</p> : null}
-        {impact !== null && impact > 500 ? (
-          <p className="text-gold">Price impact is above 5%.</p>
-        ) : null}
+        {impact !== null && impact > 500 ? <p className="text-gold">Price impact is above 5%.</p> : null}
         {receipt.isSuccess && hash ? (
           <a className="text-lime underline" href={explorerTx(hash)} target="_blank" rel="noreferrer">
-            View transaction
+            Swap landed. View the transaction.
           </a>
         ) : null}
-        {receipt.isLoading ? <p>Waiting for the block…</p> : null}
+        {receipt.isLoading ? <p className="text-mist">Waiting for the block…</p> : null}
       </div>
 
       <button
         type="button"
         disabled={disabled}
         onClick={action}
-        className="mt-4 w-full rounded-2xl bg-lime py-3 text-base font-semibold text-ink disabled:cursor-not-allowed disabled:bg-panel-2 disabled:text-mist"
+        className={`mt-2 w-full rounded-2xl py-3.5 text-base font-semibold tracking-wide ${
+          disabled
+            ? "cursor-not-allowed bg-panel-2 text-mist"
+            : "bg-lime text-ink shadow-[0_0_36px_-8px_rgba(223,242,90,0.95)] hover:brightness-110"
+        }`}
       >
         {actionLabel}
       </button>
-      <p className="mt-3 text-center text-xs text-mist">
-        Settles in your wallet on Robinhood Chain. Stock and fund tokens are the issuer contracts, quoted on Uniswap v3.
-      </p>
     </section>
+  );
+}
+
+function AverageRail({
+  windowSeconds,
+  average,
+  gapBps,
+  symbol,
+}: {
+  windowSeconds: number | null;
+  average: string | null;
+  gapBps: number | null;
+  symbol: string;
+}) {
+  const minutes = windowSeconds ? Math.round(windowSeconds / 60) : null;
+  const clamped = Math.max(-50, Math.min(50, gapBps ?? 0));
+  const marker = 50 - (clamped / 50) * 40;
+  const gap =
+    gapBps === null
+      ? null
+      : gapBps === 0
+        ? "Instant matches the average"
+        : `Instant is ${(Math.abs(gapBps) / 100).toFixed(2)}% ${gapBps > 0 ? "under" : "over"} the average`;
+
+  return (
+    <div className="mt-4 rounded-2xl border border-line bg-ink/60 p-3">
+      <div className="flex items-baseline justify-between gap-3">
+        <p className="font-mono text-[11px] tracking-[0.18em] text-gold">
+          {minutes ? `${minutes} MIN AVERAGE` : "AVERAGE"}
+        </p>
+        <p className="font-mono text-sm text-paper">
+          {average ? (
+            <>
+              {average} <span className="text-mist">{symbol}</span>
+            </>
+          ) : (
+            <span className="text-mist">Waiting on the pool</span>
+          )}
+        </p>
+      </div>
+      <div className="relative mt-3 h-1.5 rounded-full bg-panel-2">
+        <div className="absolute inset-y-0 left-1/2 w-px bg-gold" />
+        {gapBps !== null ? (
+          <span
+            className="absolute top-1/2 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-lime shadow-[0_0_12px_rgba(223,242,90,0.9)]"
+            style={{ left: `${marker}%` }}
+          />
+        ) : null}
+      </div>
+      <p className="mt-2 font-mono text-[11px] text-mist">{gap ?? "The marker lands when the quote does."}</p>
+    </div>
+  );
+}
+
+function Stat({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-2xl border border-line bg-ink/50 px-3 py-2">
+      <p className="font-mono text-[10px] tracking-[0.16em] text-mist">{label.toUpperCase()}</p>
+      <p className="mt-1 truncate font-mono text-sm text-paper">{value}</p>
+    </div>
+  );
+}
+
+function Chip({
+  active = false,
+  onClick,
+  children,
+}: {
+  active?: boolean;
+  onClick: () => void;
+  children: ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`shrink-0 rounded-full border px-3 py-1 font-mono text-xs ${
+        active ? "border-lime bg-lime text-ink" : "border-line text-mist hover:border-lime/50 hover:text-paper"
+      }`}
+    >
+      {children}
+    </button>
   );
 }
 
@@ -313,6 +500,7 @@ function TokenField({
   amount,
   onAmount,
   readOnly = false,
+  live = false,
 }: {
   label: string;
   token: Token;
@@ -320,12 +508,13 @@ function TokenField({
   amount: string;
   onAmount?: (value: string) => void;
   readOnly?: boolean;
+  live?: boolean;
 }) {
   return (
-    <div className="rounded-2xl border border-line bg-ink/70 p-3">
-      <div className="mb-2 flex items-center justify-between text-xs text-mist">
+    <div className="rounded-2xl border border-line bg-ink/75 p-3">
+      <div className="mb-1 flex items-center justify-between text-xs text-mist">
         <span>{label}</span>
-        <span className="font-mono">{token.name}</span>
+        <span className="truncate pl-3 font-mono">{token.name}</span>
       </div>
       <div className="flex items-center gap-3">
         <input
@@ -334,7 +523,9 @@ function TokenField({
           inputMode="decimal"
           placeholder="0"
           onChange={(event) => onAmount?.(event.target.value)}
-          className="w-full bg-transparent font-mono text-3xl text-paper outline-none placeholder:text-line"
+          className={`w-full bg-transparent font-mono text-4xl tracking-tight outline-none placeholder:text-line ${
+            live ? "text-lime" : "text-paper"
+          }`}
           aria-label={label}
         />
         <select
@@ -343,7 +534,7 @@ function TokenField({
             const next = findToken(event.target.value);
             if (next) onToken(next);
           }}
-          className="max-w-[9.5rem] rounded-xl border border-line bg-panel-2 px-3 py-2 font-mono text-sm"
+          className="max-w-[8.5rem] rounded-full border border-line bg-panel-2 px-3 py-2 font-mono text-sm text-paper"
           aria-label={`${label} token`}
         >
           {TOKEN_GROUPS.map((group) => (

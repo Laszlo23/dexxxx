@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { erc20Abi } from "viem";
 import { useAccount, useReadContract } from "wagmi";
 import { FillBid } from "@/components/fill-bid";
+import { MintPanel } from "@/components/mint-panel";
 import { NftCard } from "@/components/nft-card";
 import { RAREFRIENDS } from "@/config/contracts";
 import { explorerAddress, formatCount, formatDisplay, shortAddress } from "@/lib/format";
@@ -152,8 +153,11 @@ export function FriendsView() {
             {price ? `${price} RAREFRIENDS` : "—"}
           </p>
           <p className="text-sm text-mist">{priceNote ?? "Best Uniswap v3 tier."}</p>
-          <Link href="/?sell=ETH&buy=RAREFRIENDS" className="mt-3 inline-block text-sm text-lime">
-            Open the swap
+          <Link
+            href={price ? "/?sell=ETH&buy=RAREFRIENDS" : "/pools?token=RAREFRIENDS"}
+            className="mt-3 inline-block text-sm text-lime"
+          >
+            {price ? "Open the swap" : "Open a pool"}
           </Link>
         </div>
         <div className="rounded-3xl border border-line bg-panel p-4">
@@ -169,6 +173,8 @@ export function FriendsView() {
           </p>
         </div>
       </div>
+
+      <MintPanel slug="rare-friends-genesis" />
 
       {error ? <p className="mt-6 text-danger">{error}</p> : null}
       {bids.length > 0 && page ? (

@@ -1,4 +1,12 @@
 import { CollectionBoard } from "@/components/collection-board";
+import { pageMeta } from "@/lib/page-meta";
+
+export const metadata = pageMeta({
+  title: "Verified NFT collections",
+  description: "Verified ERC-721 sets on Robinhood Chain, with live OpenSea floors.",
+  path: "/collections",
+  card: "collections",
+});
 
 export default function CollectionsPage() {
   return (

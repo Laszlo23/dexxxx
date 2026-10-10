@@ -1,4 +1,4 @@
-# dexxxx
+# dex xxx
 
 A Robinhood Chain desk. Uniswap v3 swaps for ETH, USDG, and the issuer's stock and fund tokens, plus OpenSea fills for the verified NFT sets.
 

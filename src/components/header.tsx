@@ -3,15 +3,19 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAccount, useChainId } from "wagmi";
+import { BRAND } from "@/config/brand";
 import { robinhood } from "@/config/chain";
 import { ConnectButton } from "@/components/connect-button";
 
 const LINKS = [
   { href: "/", label: "Trade" },
+  { href: "/pools", label: "Pools" },
+  { href: "/vibe", label: "Packs" },
   { href: "/friends", label: "Friends" },
   { href: "/collections", label: "Collections" },
   { href: "/portfolio", label: "Bag" },
   { href: "/trends", label: "Tape" },
+  { href: "/rfgame", label: "Hood" },
 ] as const;
 
 export function Header() {
@@ -27,7 +31,7 @@ export function Header() {
           <span className="grid h-7 w-7 place-items-center rounded-md bg-lime font-mono text-sm font-semibold text-ink">
             dx
           </span>
-          <span className="text-lg tracking-tight">dexxxx</span>
+          <span className="text-lg tracking-tight">{BRAND}</span>
         </Link>
         <nav className="flex items-center gap-1 overflow-x-auto text-sm">
           {LINKS.map((link) => {

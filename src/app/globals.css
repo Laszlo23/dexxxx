@@ -28,7 +28,6 @@ body {
     linear-gradient(rgba(223, 242, 90, 0.04) 1px, transparent 1px),
     linear-gradient(90deg, rgba(223, 242, 90, 0.04) 1px, transparent 1px);
   background-size: auto, auto, 56px 56px, 56px 56px;
-  background-attachment: fixed;
 }
 
 button,
@@ -69,10 +68,77 @@ input {
   }
 }
 
+.trade-sheen {
+  background-image:
+    radial-gradient(ellipse 90% 45% at 100% 0%, rgba(223, 242, 90, 0.09), transparent 52%),
+    radial-gradient(ellipse 50% 40% at 0% 100%, rgba(240, 180, 90, 0.07), transparent 50%);
+}
+
+.quote-scan {
+  transform-origin: left center;
+  animation: quote-scan 1.15s ease-in-out infinite;
+}
+
+@keyframes quote-scan {
+  0% {
+    transform: scaleX(0.15);
+    opacity: 0.35;
+  }
+  50% {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+  100% {
+    transform: scaleX(0.15);
+    opacity: 0.35;
+    transform-origin: right center;
+  }
+}
+
+.hood-night {
+  background:
+    radial-gradient(ellipse 70% 45% at 80% -10%, rgba(122, 247, 255, 0.16), transparent 52%),
+    radial-gradient(ellipse 45% 40% at 0% 100%, rgba(255, 45, 138, 0.18), transparent 48%),
+    #070414;
+}
+
+.hood-beam {
+  transform-box: fill-box;
+  transform-origin: 0% 55%;
+  animation: hood-beam 5s ease-in-out infinite;
+}
+
+.hood-coin {
+  animation: hood-coin 2.4s ease-in-out infinite;
+}
+
+@keyframes hood-beam {
+  0%,
+  100% {
+    transform: rotate(-10deg);
+  }
+  50% {
+    transform: rotate(16deg);
+  }
+}
+
+@keyframes hood-coin {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .fly-dash,
   .fly-dash-gold,
-  .tape-track {
+  .tape-track,
+  .quote-scan,
+  .hood-beam,
+  .hood-coin {
     animation: none;
   }
 }

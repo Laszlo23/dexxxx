@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import type { Address } from "viem";
 import { useAccount } from "wagmi";
 import { FillBid } from "@/components/fill-bid";
+import { MintPanel } from "@/components/mint-panel";
 import { explorerAddress, formatCount, shortAddress } from "@/lib/format";
 import { betterOrder, type Listing } from "@/lib/listing";
 import { NftCard } from "@/components/nft-card";
@@ -149,6 +150,7 @@ export function CollectionView() {
           </a>
         </div>
       </div>
+      <MintPanel slug={slug} />
       {address ? (
         <p className="mt-4 text-sm text-mist">
           {skipped
