@@ -3,7 +3,11 @@ import { BRAND } from "@/config/brand";
 
 export const ogSize = { width: 1200, height: 630 };
 
-export function deskCard(input: { kicker: string; title: string; line: string }) {
+export function deskCard(input: { kicker: string; title: string; line: string; image?: string }) {
+  const picture =
+    input.image?.startsWith("https://") || input.image?.startsWith("data:image/") ? input.image : "";
+  const titleSize = picture ? 52 : 76;
+  const lineSize = picture ? 28 : 32;
   return new ImageResponse(
     (
       <div
@@ -11,12 +15,22 @@ export function deskCard(input: { kicker: string; title: string; line: string })
           width: "100%",
           height: "100%",
           display: "flex",
-          flexDirection: "column",
           backgroundColor: "#090b08",
           color: "#f4f6ec",
-          padding: "64px",
         }}
       >
+        {picture ? (
+          <img src={picture} alt="" width={420} height={630} style={{ width: 420, height: 630, objectFit: "cover" }} />
+        ) : null}
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            width: picture ? 780 : 1200,
+            height: "100%",
+            padding: picture ? "48px" : "64px",
+          }}
+        >
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <div
             style={{
@@ -33,10 +47,10 @@ export function deskCard(input: { kicker: string; title: string; line: string })
           </div>
           <div style={{ display: "flex", color: "#f0b45a", fontSize: 26, letterSpacing: 2 }}>{input.kicker}</div>
         </div>
-        <div style={{ display: "flex", marginTop: 56, fontSize: 76, fontWeight: 700, lineHeight: 1.05, letterSpacing: -1 }}>
+        <div style={{ display: "flex", marginTop: picture ? 36 : 56, fontSize: titleSize, fontWeight: 700, lineHeight: 1.05, letterSpacing: -1 }}>
           {input.title}
         </div>
-        <div style={{ display: "flex", marginTop: 28, fontSize: 32, color: "#9aa392", lineHeight: 1.3 }}>{input.line}</div>
+        <div style={{ display: "flex", marginTop: 28, fontSize: lineSize, color: "#9aa392", lineHeight: 1.3 }}>{input.line}</div>
         <div style={{ display: "flex", flexGrow: 1 }} />
         <div
           style={{
@@ -51,6 +65,7 @@ export function deskCard(input: { kicker: string; title: string; line: string })
         >
           <div style={{ display: "flex" }}>{BRAND}</div>
           <div style={{ display: "flex" }}>Robinhood Chain 4663</div>
+        </div>
         </div>
       </div>
     ),

@@ -9,6 +9,7 @@ import { MintPanel } from "@/components/mint-panel";
 import { explorerAddress, formatCount, shortAddress } from "@/lib/format";
 import { betterOrder, type Listing } from "@/lib/listing";
 import { NftCard } from "@/components/nft-card";
+import { PassOn } from "@/components/pass-on";
 import { Chapter, StoryOpen } from "@/components/story-frame";
 
 type Token = { id: string; name: string; image: string; description: string };
@@ -156,6 +157,12 @@ export function CollectionView() {
             <p className="mt-2 text-sm leading-6 text-paper">{page.collection.use.body}</p>
           </div>
         ) : null}
+        <PassOn
+          title={`Pass ${page.collection.name}`}
+          line={page.collection.use?.title ?? page.collection.blurb}
+          path={`/collections/${page.collection.slug}`}
+          cardSrc={`/card/${page.collection.slug}`}
+        />
       </StoryOpen>
       <MintPanel slug={slug} />
       {address ? (

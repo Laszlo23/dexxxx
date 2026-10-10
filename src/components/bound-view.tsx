@@ -4,7 +4,9 @@ import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { explorerAddress, shortAddress } from "@/lib/format";
 import type { AccountKind, Holding, NftReading } from "@/lib/portfolio";
+import { pictureShareLine } from "@/lib/share-line";
 import { NftImage } from "@/components/nft-image";
+import { PassOn } from "@/components/pass-on";
 import { StoryOpen } from "@/components/story-frame";
 
 const SAMPLES = ["CCFF00 #1", "Rare Friends Genesis #1"] as const;
@@ -130,6 +132,14 @@ export function BoundView() {
                 OpenSea
               </a>
             </div>
+            <PassOn
+              title="Pass this picture"
+              line={pictureShareLine(reading)}
+              path={`/bound?q=${encodeURIComponent(query)}`}
+              image={reading.image}
+              kicker={reading.wallet ? "KEEPS A WALLET" : "STAYS A PICTURE"}
+              cardSrc={`/card/picture?q=${encodeURIComponent(query)}`}
+            />
           </div>
         </article>
       ) : null}

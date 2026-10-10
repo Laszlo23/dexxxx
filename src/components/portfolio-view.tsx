@@ -7,6 +7,7 @@ import { useSearchParams } from "next/navigation";
 import { explorerAddress, shortAddress } from "@/lib/format";
 import type { AccountKind, BagNft, Holding, Portfolio } from "@/lib/portfolio";
 import { NftImage } from "@/components/nft-image";
+import { PassOn } from "@/components/pass-on";
 import { Chapter, StoryOpen } from "@/components/story-frame";
 
 export function PortfolioView() {
@@ -75,6 +76,14 @@ export function PortfolioView() {
           </a>
         ) : null}
         {ready && bag ? <Contents /> : null}
+        {ready && bag && isAddress(owner) ? (
+          <PassOn
+            title="Pass this bag"
+            line={bagShareLine(bag)}
+            path={`/portfolio?address=${owner}`}
+            cardSrc="/card/portfolio"
+          />
+        ) : null}
       </StoryOpen>
 
       {!owner ? (
@@ -205,6 +214,18 @@ function WalletScene({ nft }: { nft: BagNft }) {
       </div>
     </article>
   );
+}
+
+function bagShareLine(bag: Portfolio): string {
+  const { wallets, agents } = tally(bag.nfts);
+  const accounts = wallets + agents;
+  if (accounts === 0) return "A Robinhood bag. The pictures in it stay pictures.";
+  if (agents === 0) {
+    return accounts === 1
+      ? "A Robinhood bag. One picture keeps a wallet."
+      : `A Robinhood bag. ${accounts.toLocaleString("en-US")} pictures keep a wallet.`;
+  }
+  return `A Robinhood bag. ${accounts.toLocaleString("en-US")} pictures keep an account, and ${agents.toLocaleString("en-US")} of them an agent can use.`;
 }
 
 function openingLine(bag: Portfolio): string {

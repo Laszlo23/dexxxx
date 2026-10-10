@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import { BRAND } from "@/config/brand";
 
-const SOCIALS = [
+export const SOCIALS = [
   { label: "X", href: "https://x.com/bihary41418" },
   { label: "Farcaster", href: "https://farcaster.xyz/~/channel/auraos" },
   { label: "Discord", href: "https://discord.gg/geUpHt3eSb" },
@@ -72,7 +72,7 @@ function Heart() {
   );
 }
 
-function SocialIcon({ name }: { name: (typeof SOCIALS)[number]["label"] }) {
+export function SocialIcon({ name }: { name: (typeof SOCIALS)[number]["label"] }) {
   const common = { viewBox: "0 0 24 24", className: "h-4 w-4", "aria-hidden": true as const, fill: "currentColor" };
   switch (name) {
     case "X":

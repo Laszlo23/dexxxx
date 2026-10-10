@@ -2,6 +2,7 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import { Suspense } from "react";
 import { CollectionBoard } from "@/components/collection-board";
+import { Street } from "@/components/street";
 import { SwapPanel } from "@/components/swap-panel";
 
 const DeskInstruments = dynamic(
@@ -43,6 +44,7 @@ export default function Home() {
       <div className="mt-6">
         <DeskInstruments />
       </div>
+      <Street />
       <DeskTasks />
     </div>
   );

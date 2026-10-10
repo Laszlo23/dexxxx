@@ -8,11 +8,12 @@ export function pageMeta(input: {
   description: string;
   path: string;
   card: string;
+  image?: string;
 }): Metadata {
   const url = input.path === "/" ? SITE : `${SITE}${input.path}`;
   const socialTitle = `${input.title} · ${BRAND}`;
   const image = {
-    url: `/card/${input.card}`,
+    url: input.image ?? `/card/${input.card}`,
     width: 1200,
     height: 630,
     alt: socialTitle,
