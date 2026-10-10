@@ -147,7 +147,7 @@ export const COLLECTIONS: readonly NftCollection[] = [
     idEnd: null,
     supplyFn: "totalSupply",
     openseaSlug: "ccff00-161927574",
-    blurb: "10,000 on-chain neon marks. HoodStreet's founding set, drawn in the contract.",
+    blurb: "10,000 on-chain neon marks. Each one keeps a wallet.",
   },
 ];
 

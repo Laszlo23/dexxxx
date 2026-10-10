@@ -5,7 +5,7 @@ import { isAddress } from "viem";
 import { useAccount } from "wagmi";
 import { useSearchParams } from "next/navigation";
 import { explorerAddress, shortAddress } from "@/lib/format";
-import type { BagNft, Holding, Portfolio } from "@/lib/portfolio";
+import type { AccountKind, BagNft, Holding, Portfolio } from "@/lib/portfolio";
 import { NftImage } from "@/components/nft-image";
 import { Chapter, StoryOpen } from "@/components/story-frame";
 
@@ -52,10 +52,10 @@ export function PortfolioView() {
         title="A bag, opened."
         lede={
           story ??
-          "Every address on Robinhood has a pocket and, sometimes, pictures that keep a wallet of their own. This page reads one of them."
+          "Every address on Robinhood has a pocket, and every picture in it gets checked. Some pictures are wallets. Some of those wallets are the account an agent can use."
         }
       >
-        {pending ? <p className="mt-3 font-mono text-[11px] tracking-[0.16em] text-lime">Reading the pocket, then the pictures.</p> : null}
+        {pending ? <p className="mt-3 font-mono text-[11px] tracking-[0.16em] text-lime">Checking each picture for a wallet or an agent.</p> : null}
         {error ? <p className="mt-3 text-sm text-danger">{error}</p> : null}
         {owner && !isAddress(owner) ? <p className="mt-3 text-sm text-danger">That string is not an address, so this page stays shut.</p> : null}
         <label className="mt-6 block max-w-md">
@@ -90,8 +90,8 @@ export function PortfolioView() {
             id="inside"
             numeral="II"
             kicker="INSIDE THE PICTURES"
-            title="Some pictures keep a wallet."
-            lede={insideLede(wallets.length, bag.nfts.length)}
+            title="Wallets and agents, picture by picture."
+            lede={insideLede(bag)}
           >
             <div className="grid gap-4">
               {wallets.map((nft) => (
@@ -157,7 +157,7 @@ function Ledger({ holdings }: { holdings: Holding[] }) {
       <p className="mt-1 text-sm text-mist">{lead.name} leads the pocket.</p>
       <ul className="mt-4">
         {rest.map((holding) => (
-          <li key={holding.symbol} className="flex items-baseline justify-between gap-4 border-b border-line/80 py-3">
+          <li key={`${holding.symbol}-${holding.name}`} className="flex items-baseline justify-between gap-4 border-b border-line/80 py-3">
             <span>
               <span>{holding.symbol}</span>
               <span className="ml-3 text-sm text-mist">{holding.name}</span>
@@ -179,13 +179,15 @@ function WalletScene({ nft }: { nft: BagNft }) {
         <NftImage src={nft.image} alt={nft.name} />
       </div>
       <div className="p-5">
-        <p className="font-mono text-[11px] tracking-[0.16em] text-lime">{nft.collection}</p>
+        <p className="font-mono text-[11px] tracking-[0.16em] text-lime">
+          {roleLabel(wallet.kind)} · {nft.collection}
+        </p>
         <h3 className="mt-1 text-xl tracking-tight">{nft.name}</h3>
-        <p className="mt-2 max-w-xl text-sm leading-6 text-mist">{sceneLine(nft.name, wallet.holdings.length)}</p>
+        <p className="mt-2 max-w-xl text-sm leading-6 text-mist">{sceneLine(nft.name, wallet)}</p>
         {wallet.holdings.length > 0 ? (
           <ul className="mt-3 max-w-md">
             {wallet.holdings.map((holding) => (
-              <li key={holding.symbol} className="flex items-baseline justify-between gap-4 border-b border-line/70 py-1.5 font-mono text-sm">
+              <li key={`${holding.symbol}-${holding.name}`} className="flex items-baseline justify-between gap-4 border-b border-line/70 py-1.5 font-mono text-sm">
                 <span className="text-mist">{holding.symbol}</span>
                 <span>{holding.display}</span>
               </li>
@@ -211,15 +213,12 @@ function openingLine(bag: Portfolio): string {
   const pictures =
     bag.nfts.length === 0
       ? "OpenSea sent back an empty Robinhood bag."
-      : `${bag.nfts.length === 1 ? "One picture" : `${bag.nfts.length.toLocaleString("en-US")} pictures`} came along.`;
+      : `${bag.nfts.length === 1 ? "One picture was checked" : `${bag.nfts.length.toLocaleString("en-US")} pictures were checked`}.`;
   if (bag.nfts.length === 0) return `${pocket} ${pictures}`;
-  const inside =
-    bag.wallets === 0
-      ? " They stay pictures."
-      : bag.wallets === 1
-        ? " One of them keeps a wallet inside."
-        : ` ${bag.wallets.toLocaleString("en-US")} of them keep a wallet inside.`;
-  return `${pocket} ${pictures}${inside}`;
+  const { wallets, agents } = tally(bag.nfts);
+  const inside = accountSentence(wallets, agents);
+  const rest = bag.more ? " OpenSea still had pictures after these." : "";
+  return `${pocket} ${pictures} ${inside}${rest}`;
 }
 
 function pocketLede(holdings: Holding[]): string {
@@ -228,11 +227,11 @@ function pocketLede(holdings: Holding[]): string {
   return `First the ${holdings[0]?.symbol ?? "lead balance"}, then the rest of what this address is carrying.`;
 }
 
-function insideLede(wallets: number, pictures: number): string {
-  if (pictures === 0) return "A wallet inside a picture shows up when the bag has one to read.";
-  if (wallets === 0) return "The pictures in this bag stay pictures. A token-bound account shows up when the desk can read one.";
-  if (wallets === 1) return "One picture on Robinhood is also an account. This is what it is holding.";
-  return `${wallets.toLocaleString("en-US")} pictures on Robinhood are also accounts. This is what each one is holding.`;
+function insideLede(bag: Portfolio): string {
+  if (bag.nfts.length === 0) return "A wallet or an agent shows up when a picture in the bag keeps an account.";
+  const { wallets, agents } = tally(bag.nfts);
+  if (wallets + agents === 0) return "Every picture checked here stays a picture. An account shows up when the contract publishes one.";
+  return `${accountSentence(wallets, agents)} The amounts under each one are the funds sitting in that account.`;
 }
 
 function castLede(loose: number, pictures: number): string {
@@ -243,10 +242,74 @@ function castLede(loose: number, pictures: number): string {
   return `${loose.toLocaleString("en-US")} pictures stay on the page as pictures.`;
 }
 
-function sceneLine(name: string, balances: number): string {
-  if (balances === 0) return `${name} keeps an account. The tracked balances in it are zero.`;
-  if (balances === 1) return `${name} keeps an account, and one balance is sitting in it.`;
-  return `${name} keeps an account, and ${balances.toLocaleString("en-US")} balances are sitting in it.`;
+function sceneLine(name: string, wallet: NonNullable<BagNft["wallet"]>): string {
+  const role = roleSentence(wallet.kind);
+  const lead = wallet.holdings[0];
+  if (!lead) return `${name} is ${role}. The tracked balances in it are zero.`;
+  if (wallet.holdings.length === 1) return `${name} is ${role}. It is holding ${lead.display} ${lead.symbol}.`;
+  const extra = wallet.holdings.length - 1;
+  return `${name} is ${role}. It is holding ${lead.display} ${lead.symbol}, and ${extra.toLocaleString("en-US")} more ${extra === 1 ? "balance" : "balances"}.`;
+}
+
+function roleLabel(kind: AccountKind): string {
+  switch (kind) {
+    case "wallet":
+      return "WALLET";
+    case "agent":
+      return "AGENT";
+    default: {
+      const unexpected: never = kind;
+      return unexpected;
+    }
+  }
+}
+
+function roleSentence(kind: AccountKind): string {
+  switch (kind) {
+    case "wallet":
+      return "a wallet";
+    case "agent":
+      return "a wallet an agent can use";
+    default: {
+      const unexpected: never = kind;
+      return unexpected;
+    }
+  }
+}
+
+function tally(nfts: BagNft[]): { wallets: number; agents: number } {
+  let wallets = 0;
+  let agents = 0;
+  for (const nft of nfts) {
+    const kind = nft.wallet?.kind;
+    if (!kind) continue;
+    switch (kind) {
+      case "wallet":
+        wallets += 1;
+        break;
+      case "agent":
+        agents += 1;
+        break;
+      default: {
+        const unexpected: never = kind;
+        return unexpected;
+      }
+    }
+  }
+  return { wallets, agents };
+}
+
+function accountSentence(wallets: number, agents: number): string {
+  if (wallets + agents === 0) return "They stay pictures.";
+  const walletBit =
+    wallets === 0 ? "" : wallets === 1 ? "One is a wallet." : `${wallets.toLocaleString("en-US")} are wallets.`;
+  const agentBit =
+    agents === 0
+      ? ""
+      : agents === 1
+        ? " One is a wallet an agent can use."
+        : ` ${agents.toLocaleString("en-US")} are wallets an agent can use.`;
+  return `${walletBit}${agentBit}`.trim();
 }
 
 function countWord(count: number, singular: string, plural: string): string {
