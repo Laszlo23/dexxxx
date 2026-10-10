@@ -69,19 +69,66 @@ function doorHint(kind: DoorKind): string {
   }
 }
 
-function doorRank(kind: DoorKind): number {
+function doorRank(kind: DoorKind, phone: boolean): number {
   switch (kind) {
     case "walletConnect":
-      return 0;
+      return phone ? 2 : 0;
     case "named":
-      return 1;
+      return phone ? 0 : 1;
     case "browser":
-      return 2;
+      return phone ? 1 : 2;
     default: {
       const unknown: never = kind;
       return unknown;
     }
   }
+}
+
+type WalletApp = {
+  name: string;
+  hint: string;
+  href: (page: string) => string;
+};
+
+const WALLET_APPS: readonly WalletApp[] = [
+  {
+    name: "MetaMask",
+    hint: "Opens this desk in the app",
+    href: (page) => {
+      const url = new URL(page);
+      return `https://metamask.app.link/dapp/${url.host}${url.pathname}${url.search}`;
+    },
+  },
+  {
+    name: "Coinbase Wallet",
+    hint: "Opens this desk in the app",
+    href: (page) => `https://go.cb-w.com/dapp?cb_url=${encodeURIComponent(page)}`,
+  },
+  {
+    name: "Trust Wallet",
+    hint: "Opens this desk in the app",
+    href: (page) => `https://link.trustwallet.com/open_url?coin_id=60&url=${encodeURIComponent(page)}`,
+  },
+];
+
+function WalletApps({ onPick, always = false }: { onPick: () => void; always?: boolean }) {
+  const page = typeof window === "undefined" ? "https://dex.aibusiness.fun/" : window.location.href;
+  return (
+    <div className={always ? "mt-3" : "border-t border-line px-1 pt-2 lg:hidden"}>
+      <p className="px-2 pb-1 font-mono text-[11px] tracking-[0.16em] text-gold">OPEN IN THE APP</p>
+      {WALLET_APPS.map((app) => (
+        <a
+          key={app.name}
+          href={app.href(page)}
+          onClick={onPick}
+          className="block rounded-xl px-3 py-2 hover:bg-panel-2"
+        >
+          <span className="block text-sm text-paper">{app.name}</span>
+          <span className="block text-xs text-mist">{app.hint}</span>
+        </a>
+      ))}
+    </div>
+  );
 }
 
 function connectMessage(error: Error): string {
@@ -240,47 +287,69 @@ export function ConnectButton() {
     );
   }
 
-  const doors = [...connectors].sort((left, right) => doorRank(doorKind(left)) - doorRank(doorKind(right)));
+  const phone = open && window.matchMedia("(max-width: 1023px)").matches;
+  const doors = [...connectors].sort(
+    (left, right) => doorRank(doorKind(left), phone) - doorRank(doorKind(right), phone),
+  );
 
   return (
     <div className="relative">
       <button
         type="button"
+        aria-expanded={open}
+        aria-haspopup="dialog"
         onClick={() => setOpen((value) => !value)}
         className="rounded-full bg-lime px-4 py-2 text-sm font-medium text-ink"
       >
         {linking ? "Connecting" : "Connect"}
       </button>
-      {open ? (
-        <div className="absolute right-0 z-30 mt-2 w-64 rounded-2xl border border-line bg-panel p-2 shadow-xl">
-          {doors.map((connector) => {
-            const kind = doorKind(connector);
-            return (
+      {open
+        ? createPortal(
+            <div className="fixed inset-0 z-[70]" role="presentation">
               <button
-                key={connector.uid}
                 type="button"
-                className="block w-full rounded-xl px-3 py-2 text-left hover:bg-panel-2"
-                onClick={() => {
-                  if (kind === "walletConnect") {
-                    void startWalletConnect(connector);
-                    return;
-                  }
-                  setOpen(false);
-                  setLinking(true);
-                  connect(
-                    { connector, chainId: robinhood.id },
-                    { onSettled() { setLinking(false); } },
-                  );
-                }}
+                aria-label="Close wallet menu"
+                className="absolute inset-0 bg-ink/70"
+                onClick={() => setOpen(false)}
+              />
+              <div
+                role="dialog"
+                aria-label="Connect a wallet"
+                className="trade-sheen absolute inset-x-3 bottom-3 z-[71] max-h-[75vh] overflow-auto rounded-[28px] border border-line bg-panel p-3 shadow-2xl sm:inset-x-auto sm:bottom-auto sm:right-4 sm:top-20 sm:w-80"
               >
-                <span className="block text-sm">{doorLabel(kind, connector.name)}</span>
-                <span className="block text-xs text-mist">{doorHint(kind)}</span>
-              </button>
-            );
-          })}
-          {error ? <p className="px-2 py-1 text-xs text-danger">{connectMessage(error)}</p> : null}
-        </div>
-      ) : null}
+                <p className="px-2 pb-2 font-mono text-[11px] tracking-[0.16em] text-gold">CONNECT</p>
+                {doors.map((connector) => {
+                  const kind = doorKind(connector);
+                  return (
+                    <button
+                      key={connector.uid}
+                      type="button"
+                      className="block w-full rounded-xl px-3 py-2 text-left hover:bg-panel-2"
+                      onClick={() => {
+                        if (kind === "walletConnect") {
+                          void startWalletConnect(connector);
+                          return;
+                        }
+                        setOpen(false);
+                        setLinking(true);
+                        connect(
+                          { connector, chainId: robinhood.id },
+                          { onSettled() { setLinking(false); } },
+                        );
+                      }}
+                    >
+                      <span className="block text-sm">{doorLabel(kind, connector.name)}</span>
+                      <span className="block text-xs text-mist">{doorHint(kind)}</span>
+                    </button>
+                  );
+                })}
+                <WalletApps onPick={() => setOpen(false)} />
+                {error ? <p className="px-2 py-1 text-xs text-danger">{connectMessage(error)}</p> : null}
+              </div>
+            </div>,
+            document.body,
+          )
+        : null}
       {pairing
         ? createPortal(
             <div className="fixed inset-0 z-[80] grid place-items-center bg-ink/80 p-4" role="dialog" aria-modal="true" aria-label="WalletConnect">
@@ -288,8 +357,9 @@ export function ConnectButton() {
                 <p className="font-mono text-[11px] tracking-[0.22em] text-gold">WALLETCONNECT</p>
                 <h2 className="mt-2 text-xl tracking-tight">A link, drawn for your wallet.</h2>
                 <p className="mt-1 text-sm text-mist">
-                  Rainbow, MetaMask, or any WalletConnect wallet. Approve Robinhood Chain when it asks.
+                  Open this desk inside the wallet app, then connect there. The code is for a second screen.
                 </p>
+                <WalletApps always onPick={() => undefined} />
                 <div className="mt-4 grid min-h-72 place-items-center rounded-2xl bg-paper p-4">
                   {qr ? (
                     <img src={qr} alt="WalletConnect QR code" width={280} height={280} />
