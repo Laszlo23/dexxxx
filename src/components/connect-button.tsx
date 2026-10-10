@@ -284,9 +284,9 @@ export function ConnectButton() {
       {pairing
         ? createPortal(
             <div className="fixed inset-0 z-[80] grid place-items-center bg-ink/80 p-4" role="dialog" aria-modal="true" aria-label="WalletConnect">
-              <div className="w-full max-w-sm rounded-3xl border border-line bg-panel p-5 shadow-2xl">
-                <p className="font-mono text-[11px] tracking-[0.22em] text-lime">WALLETCONNECT</p>
-                <h2 className="mt-2 text-xl tracking-tight">Scan with a phone wallet</h2>
+              <div className="trade-sheen w-full max-w-sm rounded-[28px] border border-line bg-panel p-5 shadow-2xl">
+                <p className="font-mono text-[11px] tracking-[0.22em] text-gold">WALLETCONNECT</p>
+                <h2 className="mt-2 text-xl tracking-tight">A link, drawn for your wallet.</h2>
                 <p className="mt-1 text-sm text-mist">
                   Rainbow, MetaMask, or any WalletConnect wallet. Approve Robinhood Chain when it asks.
                 </p>

@@ -41,7 +41,7 @@ export function Header() {
                 key={link.href}
                 href={link.href}
                 className={`rounded-full px-3 py-1.5 ${
-                  active ? "bg-panel-2 text-paper" : "text-mist hover:text-paper"
+                  active ? "bg-lime/15 text-lime" : "text-mist hover:text-paper"
                 }`}
               >
                 {link.label}

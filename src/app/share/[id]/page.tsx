@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { StoryOpen } from "@/components/story-frame";
 import { CARDS, findSharePost, SHARE_POSTS, type CardId } from "@/data/share-posts";
 import { pageMeta } from "@/lib/page-meta";
 
@@ -30,9 +31,12 @@ export default async function SharePage({ params }: { params: Promise<{ id: stri
   if (!post) notFound();
   return (
     <article className="mx-auto w-full max-w-3xl px-4 py-10">
-      <p className="font-mono text-[11px] tracking-[0.22em] text-lime">{CARDS[post.id as CardId].kicker}</p>
-      <h1 className="mt-2 text-4xl tracking-tight">{post.headline}</h1>
-      <p className="mt-3 max-w-xl text-mist">{post.line}</p>
+      <StoryOpen
+        numeral="I"
+        kicker={CARDS[post.id as CardId].kicker}
+        title={post.headline}
+        lede={`${post.line} Passed along with love.`}
+      />
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src={`/card/${post.id}`}

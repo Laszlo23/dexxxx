@@ -74,9 +74,10 @@ export function DeskInstruments() {
 
   return (
     <div className="grid gap-3 lg:grid-cols-2">
-      <section className="relative overflow-hidden rounded-3xl border border-line bg-panel/90 p-5">
-        <p className="font-mono text-[11px] tracking-[0.22em] text-lime">FLYLOOP</p>
+      <section className="trade-sheen relative overflow-hidden rounded-[28px] border border-line bg-panel/90 p-5">
+        <p className="font-mono text-[11px] tracking-[0.22em] text-gold">FLYLOOP</p>
         <h2 className="mt-1 text-2xl tracking-tight">The desk turns in one circle.</h2>
+        <p className="mt-2 max-w-sm text-sm leading-6 text-mist">Every stop is a place this desk already loves.</p>
         <div className="mt-4 grid items-center gap-4 sm:grid-cols-[180px_1fr]">
           <svg viewBox="0 0 200 200" className="mx-auto h-44 w-44" aria-hidden="true">
             <circle cx="100" cy="100" r="68" fill="none" stroke="#2c3324" strokeWidth="8" />
@@ -123,7 +124,7 @@ export function DeskInstruments() {
         </div>
       </section>
 
-      <section className="rounded-3xl border border-gold/40 bg-panel/90 p-5">
+      <section className="trade-sheen rounded-[28px] border border-gold/40 bg-panel/90 p-5">
         <p className="font-mono text-[11px] tracking-[0.22em] text-gold">THE EDGE</p>
         <h2 className="mt-1 text-2xl tracking-tight">
           {spread ? (
@@ -137,7 +138,7 @@ export function DeskInstruments() {
           )}
         </h2>
         <p className="mt-2 max-w-md text-sm text-mist">
-          Room between the cheapest Genesis ask and the best bid already sitting on OpenSea.
+          Room between the cheapest Genesis ask and the best bid already sitting on OpenSea. Held with care.
         </p>
         <div className="mt-5">
           <div className="relative h-2 overflow-hidden rounded-full bg-panel-2">

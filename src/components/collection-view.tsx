@@ -9,6 +9,7 @@ import { MintPanel } from "@/components/mint-panel";
 import { explorerAddress, formatCount, shortAddress } from "@/lib/format";
 import { betterOrder, type Listing } from "@/lib/listing";
 import { NftCard } from "@/components/nft-card";
+import { Chapter, StoryOpen } from "@/components/story-frame";
 
 type Token = { id: string; name: string; image: string; description: string };
 type Page = {
@@ -134,22 +135,21 @@ export function CollectionView() {
   }
 
   const heldIds = owned && owned.owner === address ? owned.ids : [];
+  const hasBids = bids.length > 0;
+  const hasAsks = asks.length > 0;
+  const pictureNumeral = hasBids && hasAsks ? "IV" : hasBids || hasAsks ? "III" : "II";
 
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-8 lg:px-6">
-      <p className="font-mono text-[11px] tracking-[0.22em] text-gold">{page.collection.symbol}</p>
-      <div className="mt-2 flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h1 className="text-4xl tracking-tight">{page.collection.name}</h1>
-          <p className="mt-2 max-w-xl text-mist">{page.collection.blurb}</p>
-        </div>
-        <div className="text-right font-mono text-sm text-mist">
-          <p>{formatCount(page.supply)} supply</p>
-          <a className="text-lime" href={explorerAddress(page.collection.address)} target="_blank" rel="noreferrer">
+      <StoryOpen numeral="I" kicker={page.collection.symbol} title={page.collection.name} lede={page.collection.blurb}>
+        <p className="mt-4 font-mono text-sm text-mist">
+          {formatCount(page.supply)} on chain
+          {" · "}
+          <a className="text-lime hover:underline" href={explorerAddress(page.collection.address)} target="_blank" rel="noreferrer">
             {shortAddress(page.collection.address)}
           </a>
-        </div>
-      </div>
+        </p>
+      </StoryOpen>
       <MintPanel slug={slug} />
       {address ? (
         <p className="mt-4 text-sm text-mist">
@@ -162,12 +162,13 @@ export function CollectionView() {
                 : "Scanning this wallet…"}
         </p>
       ) : null}
-      {bids.length > 0 ? (
-        <section className="mt-6">
-          <h2 className="text-lg tracking-tight">Bids you can fill</h2>
-          <p className="mb-3 text-sm text-mist">
-            Standing OpenSea offers. Selling pays you in the bid token. The marketplace fee is taken from that bid.
-          </p>
+      {hasBids ? (
+        <Chapter
+          numeral="II"
+          kicker="THE BIDS"
+          title="Offers already waiting."
+          lede="Standing OpenSea offers. Selling pays you in the bid token. The marketplace fee is taken from that bid."
+        >
           <div className="grid gap-3 md:grid-cols-2">
             {bids.map((bid) => (
               <FillBid
@@ -178,14 +179,15 @@ export function CollectionView() {
               />
             ))}
           </div>
-        </section>
+        </Chapter>
       ) : null}
-      {asks.length > 0 ? (
-        <section className="mt-6">
-          <h2 className="text-lg tracking-tight">For sale on OpenSea</h2>
-          <p className="mb-3 text-sm text-mist">
-            Cheapest live asks. USDG listings approve the OpenSea conduit, then buy in the same wallet.
-          </p>
+      {hasAsks ? (
+        <Chapter
+          numeral={hasBids ? "III" : "II"}
+          kicker="THE ASKS"
+          title="Pictures already for sale."
+          lede="Cheapest live asks. USDG listings approve the OpenSea conduit, then buy in the same wallet."
+        >
           <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
             {asks.map((ask) => (
               <NftCard
@@ -198,47 +200,52 @@ export function CollectionView() {
               />
             ))}
           </div>
-        </section>
+        </Chapter>
       ) : null}
-      <div className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-4">
-        {page.tokens.map((token) => {
-          const held = heldIds.includes(token.id);
-          return (
-            <NftCard
-              key={token.id}
-              id={token.id}
-              name={token.name}
-              image={token.image}
-              listing={listings[token.id]}
-              offer={held ? betterOrder(itemOffers[token.id], bids[0]) : undefined}
-              link={links[token.id] ?? `https://opensea.io/item/robinhood/${page.collection.address}/${token.id}`}
-            />
-          );
-        })}
-      </div>
-      {page.tokens.length === 0 ? (
-        <p className="mt-6 text-mist">No revealed tokens on this page.</p>
-      ) : null}
-      <div className="mt-6 flex gap-3">
-        <button
-          type="button"
-          disabled={cursor === null}
-          onClick={() => setCursor(null)}
-          className="rounded-full border border-line px-4 py-2 text-sm disabled:text-mist"
-        >
-          First page
-        </button>
-        <button
-          type="button"
-          disabled={page.nextCursor === null}
-          onClick={() => {
-            if (page.nextCursor !== null) setCursor(page.nextCursor);
-          }}
-          className="rounded-full bg-lime px-4 py-2 text-sm font-medium text-ink disabled:bg-panel-2 disabled:text-mist"
-        >
-          Next
-        </button>
-      </div>
+      <Chapter
+        numeral={pictureNumeral}
+        kicker="THE SET"
+        title="The pictures on this page."
+        lede="Held here with the same care as the bag. A listing or an offer shows when the book has one."
+      >
+        {page.tokens.length === 0 ? <p className="text-mist">No revealed tokens on this page.</p> : null}
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-4">
+          {page.tokens.map((token) => {
+            const held = heldIds.includes(token.id);
+            return (
+              <NftCard
+                key={token.id}
+                id={token.id}
+                name={token.name}
+                image={token.image}
+                listing={listings[token.id]}
+                offer={held ? betterOrder(itemOffers[token.id], bids[0]) : undefined}
+                link={links[token.id] ?? `https://opensea.io/item/robinhood/${page.collection.address}/${token.id}`}
+              />
+            );
+          })}
+        </div>
+        <div className="mt-6 flex gap-3">
+          <button
+            type="button"
+            disabled={cursor === null}
+            onClick={() => setCursor(null)}
+            className="rounded-full border border-line px-4 py-2 text-sm disabled:text-mist"
+          >
+            First page
+          </button>
+          <button
+            type="button"
+            disabled={page.nextCursor === null}
+            onClick={() => {
+              if (page.nextCursor !== null) setCursor(page.nextCursor);
+            }}
+            className="rounded-full bg-lime px-4 py-2 text-sm font-medium text-ink disabled:bg-panel-2 disabled:text-mist"
+          >
+            Next
+          </button>
+        </div>
+      </Chapter>
     </div>
   );
 }

@@ -7,6 +7,7 @@ import { useAccount, useReadContract } from "wagmi";
 import { FillBid } from "@/components/fill-bid";
 import { MintPanel } from "@/components/mint-panel";
 import { NftCard } from "@/components/nft-card";
+import { Chapter, StoryOpen } from "@/components/story-frame";
 import { RAREFRIENDS } from "@/config/contracts";
 import { explorerAddress, formatCount, formatDisplay, shortAddress } from "@/lib/format";
 import { betterOrder, type Listing } from "@/lib/listing";
@@ -126,13 +127,12 @@ export function FriendsView() {
 
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-8 lg:px-6">
-      <p className="font-mono text-[11px] tracking-[0.22em] text-gold">GENESIS</p>
-      <h1 className="mt-2 max-w-2xl text-4xl tracking-tight sm:text-5xl">
-        Rare Friends, sitting on the same chain as the book.
-      </h1>
-      <p className="mt-3 max-w-xl text-mist">
-        One thousand twenty-four on-chain friends, plus the $RAREFRIENDS token they spend.
-      </p>
+      <StoryOpen
+        numeral="I"
+        kicker="THE FRIENDS"
+        title="Rare Friends, held close."
+        lede="One thousand twenty-four on-chain friends, plus the token they spend. The book sits on the same chain."
+      />
 
       <div className="mt-6 grid gap-3 md:grid-cols-3">
         <div className="rounded-3xl border border-gold/50 bg-panel p-4">
@@ -178,11 +178,12 @@ export function FriendsView() {
 
       {error ? <p className="mt-6 text-danger">{error}</p> : null}
       {bids.length > 0 && page ? (
-        <section className="mt-8">
-          <h2 className="text-2xl tracking-tight">Bids on Genesis</h2>
-          <p className="mb-3 text-sm text-mist">
-            Sell a friend you hold into a live OpenSea offer. Approval, then the sale, both in this wallet.
-          </p>
+        <Chapter
+          numeral="II"
+          kicker="THE BIDS"
+          title="Offers already waiting."
+          lede="Sell a friend you hold into a live OpenSea offer. Approval, then the sale, both in this wallet."
+        >
           <div className="grid gap-3 md:grid-cols-2">
             {bids.map((bid) => (
               <FillBid
@@ -193,12 +194,15 @@ export function FriendsView() {
               />
             ))}
           </div>
-        </section>
+        </Chapter>
       ) : null}
       {asks.length > 0 ? (
-        <section className="mt-8">
-          <h2 className="text-2xl tracking-tight">Genesis for sale</h2>
-          <p className="mb-3 text-sm text-mist">Live OpenSea asks, filled in this wallet.</p>
+        <Chapter
+          numeral={bids.length > 0 ? "III" : "II"}
+          kicker="THE ASKS"
+          title="Friends already for sale."
+          lede="Live OpenSea asks, filled in this wallet."
+        >
           <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
             {asks.map((ask) => (
               <NftCard
@@ -211,34 +215,36 @@ export function FriendsView() {
               />
             ))}
           </div>
-        </section>
+        </Chapter>
       ) : null}
-      <div className="mt-8 flex items-end justify-between">
-        <h2 className="text-2xl tracking-tight">First page of Genesis</h2>
-        <Link href="/collections/rare-friends-genesis" className="text-sm text-lime">
-          Whole collection
-        </Link>
-      </div>
-      <div className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-4">
-        {(page?.tokens ?? []).map((token) => {
-          const held = heldIds.includes(token.id);
-          return (
-            <NftCard
-              key={token.id}
-              id={token.id}
-              name={token.name}
-              image={token.image}
-              listing={listings[token.id]}
-              offer={held ? betterOrder(itemOffers[token.id], bids[0]) : undefined}
-              link={links[token.id] ?? `https://opensea.io/item/robinhood/${page?.collection.address}/${token.id}`}
-            />
-          );
-        })}
-      </div>
-      {!page && !error ? <p className="mt-4 text-mist">Pulling Genesis art from the chain…</p> : null}
-      {page ? (
-        <p className="mt-4 font-mono text-xs text-mist">{formatCount(page.supply)} minted</p>
-      ) : null}
+      <Chapter
+        numeral={bids.length > 0 && asks.length > 0 ? "IV" : bids.length > 0 || asks.length > 0 ? "III" : "II"}
+        kicker="THE SET"
+        title="The first page of Genesis."
+        lede={!page && !error ? "Pulling the art from the chain." : page ? `${formatCount(page.supply)} minted, held close.` : undefined}
+      >
+        <div className="flex justify-end">
+          <Link href="/collections/rare-friends-genesis" className="text-sm text-lime">
+            Whole collection
+          </Link>
+        </div>
+        <div className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-4">
+          {(page?.tokens ?? []).map((token) => {
+            const held = heldIds.includes(token.id);
+            return (
+              <NftCard
+                key={token.id}
+                id={token.id}
+                name={token.name}
+                image={token.image}
+                listing={listings[token.id]}
+                offer={held ? betterOrder(itemOffers[token.id], bids[0]) : undefined}
+                link={links[token.id] ?? `https://opensea.io/item/robinhood/${page?.collection.address}/${token.id}`}
+              />
+            );
+          })}
+        </div>
+      </Chapter>
     </div>
   );
 }

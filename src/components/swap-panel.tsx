@@ -275,7 +275,7 @@ export function SwapPanel() {
       <div className={`quote-scan absolute inset-x-0 top-0 h-0.5 bg-lime ${quoting ? "opacity-100" : "opacity-0"}`} />
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="font-mono text-[11px] tracking-[0.28em] text-lime">THE BOOK</p>
+          <p className="font-mono text-[11px] tracking-[0.28em] text-lime">I · THE BOOK</p>
           <h1 className="mt-1 font-mono text-3xl tracking-tight text-paper">
             {sell.symbol}
             <span className="mx-2 text-mist">/</span>
@@ -307,7 +307,7 @@ export function SwapPanel() {
         ) : quoting ? (
           <span className="text-mist">Reading the pool…</span>
         ) : (
-          <span className="text-mist">Pick a size. The rate comes off the pool.</span>
+          <span className="text-mist">Pick a size. The pool writes the rate back.</span>
         )}
       </p>
 

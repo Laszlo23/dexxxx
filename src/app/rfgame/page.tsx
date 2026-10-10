@@ -60,6 +60,9 @@ export default function RareHoodPage() {
           <p className="mt-4 font-mono text-[11px] tracking-wide text-[#9aa392]">
             Needs a Generations NFT, generation 1 or higher. HOOD on the score is simulated.
           </p>
+          <p className="mt-2 font-mono text-[11px] tracking-[0.18em] text-[#ffd24a]">
+            Made with love for the friends who wear the hood.
+          </p>
         </div>
         <CastleStage />
       </section>

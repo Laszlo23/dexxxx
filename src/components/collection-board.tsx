@@ -61,7 +61,7 @@ export function CollectionBoard({ compact = false }: { compact?: boolean }) {
           <Link
             key={card.slug}
             href={`/collections/${card.slug}`}
-            className={`group overflow-hidden rounded-3xl border bg-panel ${
+            className={`group overflow-hidden rounded-[28px] border bg-panel transition-colors hover:border-lime/50 ${
               card.hero ? "border-gold/70 sm:col-span-2" : "border-line"
             }`}
           >

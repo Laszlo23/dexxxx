@@ -83,9 +83,12 @@ export function DeskTasks() {
   }, [paused]);
 
   return (
-    <section className="mt-3 rounded-3xl border border-line bg-panel/90 p-4">
-      <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <p className="font-mono text-[11px] tracking-[0.22em] text-lime">DESK TASKS</p>
+    <section className="trade-sheen mt-3 rounded-[28px] border border-line bg-panel/90 p-4">
+      <div className="flex flex-wrap items-end justify-between gap-2">
+        <div>
+          <p className="font-mono text-[11px] tracking-[0.22em] text-gold">DESK TASKS</p>
+          <h2 className="mt-1 text-xl tracking-tight">Seven seconds, given with love.</h2>
+        </div>
         <p className="font-mono text-xs text-mist">{finished} / 4</p>
       </div>
       <div className="mt-3 overflow-hidden rounded-3xl border border-line bg-ink/50">

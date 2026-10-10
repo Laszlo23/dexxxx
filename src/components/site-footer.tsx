@@ -23,11 +23,11 @@ export function SiteFooter() {
         <div>
           <p className="font-mono text-[11px] tracking-[0.28em] text-lime">DEX XXX</p>
           <p className="mt-3 flex items-center gap-2 text-xl tracking-tight text-paper">
-            Developed with love
+            Made with love
             <Heart />
           </p>
-          <p className="mt-2 max-w-xs text-sm text-mist">
-            The Robinhood Chain desk for the book, the friends, the packs, and the bag.
+          <p className="mt-2 max-w-xs text-sm leading-6 text-mist">
+            For the book, the friends, the packs, and the bag. Chain 4663, held gently.
           </p>
         </div>
         <nav className="flex flex-col gap-2" aria-label="Legal">
@@ -122,7 +122,7 @@ export function LegalFrame({
   children: ReactNode;
 }) {
   return (
-    <article className="mx-auto w-full max-w-2xl px-4 py-10 lg:px-6">
+    <article className="trade-sheen mx-4 my-8 w-auto max-w-2xl rounded-[28px] border border-line bg-panel px-6 py-10 sm:mx-auto lg:px-8">
       <p className="font-mono text-[11px] tracking-[0.22em] text-gold">{kicker}</p>
       <h1 className="mt-2 text-4xl tracking-tight">{title}</h1>
       <div className="mt-6 space-y-4 text-sm leading-6 text-mist">{children}</div>

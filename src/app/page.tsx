@@ -19,22 +19,24 @@ export default function Home() {
         <Suspense fallback={<div className="h-[640px] rounded-[28px] border border-line bg-panel" />}>
           <SwapPanel />
         </Suspense>
-        <section>
-          <p className="font-mono text-[11px] tracking-[0.22em] text-gold">ON THE CHAIN</p>
-          <h2 className="mt-2 text-2xl tracking-tight">Collections beside the book</h2>
-          <p className="mb-4 mt-1 text-sm text-mist">
-            Rare Friends leads. The rest are verified ERC-721 sets on Robinhood Chain.
+        <section className="trade-sheen rounded-[28px] border border-line bg-panel px-5 py-6">
+          <p className="font-mono text-3xl text-lime">II</p>
+          <p className="mt-3 font-mono text-[11px] tracking-[0.22em] text-gold">THE FRIENDS</p>
+          <h2 className="mt-2 text-3xl tracking-tight">Collections beside the book.</h2>
+          <p className="mb-4 mt-3 max-w-xl text-sm leading-6 text-mist">
+            Rare Friends leads, with love. The rest were read on Robinhood before they sat here.
           </p>
           <CollectionBoard compact />
         </section>
       </div>
       <Link
         href="/vibe"
-        className="mt-6 flex flex-wrap items-end justify-between gap-3 rounded-3xl border border-line bg-panel px-5 py-4 hover:border-lime/50"
+        className="trade-sheen mt-6 flex flex-wrap items-end justify-between gap-3 rounded-[28px] border border-line bg-panel px-5 py-5 hover:border-lime/50"
       >
         <span>
-          <span className="font-mono text-[11px] tracking-[0.22em] text-gold">VIBE.MARKET</span>
-          <span className="mt-1 block text-lg tracking-tight">ETH packs on Robinhood</span>
+          <span className="font-mono text-3xl text-lime">III</span>
+          <span className="mt-3 block font-mono text-[11px] tracking-[0.22em] text-gold">VIBE.MARKET</span>
+          <span className="mt-1 block text-2xl tracking-tight">ETH packs, passed along with care.</span>
         </span>
         <span className="text-sm text-lime">Open the shelf</span>
       </Link>

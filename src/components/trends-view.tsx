@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { StoryOpen } from "@/components/story-frame";
 import { TRENDS } from "@/data/trends";
 
 type Floor = { amount: string; symbol: string } | null;
@@ -28,11 +29,12 @@ export function TrendsView() {
 
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-8 lg:px-6">
-      <p className="font-mono text-[11px] tracking-[0.22em] text-gold">TAPE</p>
-      <h1 className="mt-2 max-w-3xl text-4xl tracking-tight sm:text-5xl">What the chain is doing.</h1>
-      <p className="mt-3 max-w-xl text-mist">
-        Four notes on Robinhood NFTs, plus the floors this desk is reading right now.
-      </p>
+      <StoryOpen
+        numeral="I"
+        kicker="THE TAPE"
+        title="What the chain is doing."
+        lede="Four notes, written with care, plus the floors this desk is reading right now."
+      />
 
       <div className="tape-mask mt-6 overflow-hidden rounded-full border border-line bg-panel">
         {loop.length > 0 ? (
@@ -53,7 +55,7 @@ export function TrendsView() {
 
       <div className="mt-8 grid gap-4 lg:grid-cols-2">
         {TRENDS.map((trend) => (
-          <article key={trend.slug} className="rounded-3xl border border-line bg-panel/90 p-5">
+          <article key={trend.slug} className="trade-sheen rounded-[28px] border border-line bg-panel/90 p-5">
             <p className="font-mono text-[11px] tracking-[0.18em] text-lime">{trend.kicker}</p>
             <h2 className="mt-2 text-2xl tracking-tight">{trend.title}</h2>
             <p className="mt-3 text-sm leading-6 text-mist">{trend.body}</p>

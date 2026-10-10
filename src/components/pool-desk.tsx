@@ -25,6 +25,7 @@ import {
   type PoolFee,
   type QuoteSide,
 } from "@/config/pools";
+import { StoryOpen } from "@/components/story-frame";
 import { explorerTx, feeLabel, formatDisplay, parseAmount } from "@/lib/format";
 import {
   amountsForDeposit,
@@ -304,12 +305,12 @@ export function PoolDesk() {
 
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-8 lg:px-6">
-      <p className="font-mono text-[11px] tracking-[0.22em] text-lime">NFT TOKEN POOLS</p>
-      <h1 className="mt-2 max-w-2xl text-4xl tracking-tight">Open the book for the collection tokens.</h1>
-      <p className="mt-3 max-w-xl text-sm text-mist">
-        Each pool is a Uniswap v3 pair on Robinhood Chain. A closed pair opens at the price you type, then the wallet
-        adds a full-range position. Nothing moves until you confirm.
-      </p>
+      <StoryOpen
+        numeral="I"
+        kicker="THE POOLS"
+        title="A market, opened by hand."
+        lede="Each pool is a Uniswap v3 pair on Robinhood. You type the price. The wallet opens it. Nothing moves until you confirm."
+      />
 
       <div className="mt-6 grid gap-4 lg:grid-cols-3">
         {NFT_TOKENS.map((token, tokenIndex) => (

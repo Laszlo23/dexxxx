@@ -1,15 +1,16 @@
+import { StoryOpen } from "@/components/story-frame";
 import { VIBE_INVITE, vibeHref } from "@/config/vibe";
 import type { VibeShelf } from "@/lib/vibe-shelf";
 
 export function VibeShelfView({ shelf }: { shelf: VibeShelf | null }) {
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-8 lg:px-6">
-      <p className="font-mono text-[11px] tracking-[0.22em] text-gold">VIBE.MARKET</p>
-      <h1 className="mt-2 text-4xl tracking-tight">Packs on Robinhood</h1>
-      <p className="mt-3 max-w-2xl text-sm leading-6 text-mist">
-        These are the live ETH packs on vibe.market for chain 4663. The listed price is the one published with the
-        shelf. Opening a pack is a wallet transaction on vibe.market, and invite {VIBE_INVITE} stays on the link.
-      </p>
+      <StoryOpen
+        numeral="I"
+        kicker="VIBE.MARKET"
+        title="Packs, passed along."
+        lede={`These are the live ETH packs on vibe.market for chain 4663. The listed price is the one published with the shelf. Opening a pack stays in your wallet, and invite ${VIBE_INVITE} rides along.`}
+      />
       {shelf ? <Shelf shelf={shelf} /> : <ShelfDown />}
     </div>
   );

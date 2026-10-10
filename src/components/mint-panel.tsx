@@ -190,7 +190,7 @@ function MintFrame({
   children?: ReactNode;
 }) {
   return (
-    <section className="mt-6 rounded-3xl border border-line bg-panel p-4 md:p-5">
+    <section className="trade-sheen mt-6 rounded-[28px] border border-line bg-panel p-4 md:p-5">
       <p className="font-mono text-[11px] tracking-[0.22em] text-gold">MINT</p>
       <h2 className="mt-2 text-2xl tracking-tight">{status}</h2>
       <p className="mt-2 max-w-2xl text-sm text-mist">{detail}</p>

@@ -57,10 +57,12 @@ export function GmButton() {
   return (
     <div className="fixed bottom-5 right-5 z-30 flex flex-col items-end gap-3">
       {open ? (
-        <section className="w-64 rounded-3xl border border-line bg-panel/95 p-4 shadow-[0_20px_60px_-24px_rgba(223,242,90,0.7)]">
-          <p className="font-mono text-[11px] tracking-[0.22em] text-lime">GM</p>
-          <p className="mt-2 text-sm text-paper">0.0001 ETH, with gm written on the transfer.</p>
-          <p className="mt-1 font-mono text-xs text-mist">to {shortAddress(GM_WALLET)}</p>
+        <section className="trade-sheen w-72 rounded-[28px] border border-line bg-panel/95 p-4 shadow-[0_20px_60px_-24px_rgba(223,242,90,0.7)]">
+          <p className="font-mono text-[11px] tracking-[0.22em] text-gold">A SMALL GM</p>
+          <h2 className="mt-2 text-lg tracking-tight">Good morning, with love.</h2>
+          <p className="mt-2 text-sm leading-6 text-mist">
+            0.0001 ETH, and the word gm, to {shortAddress(GM_WALLET)}. The wallet confirms it.
+          </p>
           {error ? <p className="mt-2 font-mono text-xs text-danger">{error}</p> : null}
           {hash ? (
             <a className="mt-2 block font-mono text-xs text-lime underline" href={explorerTx(hash)} target="_blank" rel="noreferrer">
@@ -84,7 +86,7 @@ export function GmButton() {
         aria-expanded={open}
         aria-label={open ? "Close gm" : "Send gm"}
         onClick={() => setOpen((current) => !current)}
-        className="grid h-14 w-14 place-items-center rounded-full bg-lime font-mono text-sm font-semibold text-ink shadow-[0_0_32px_-6px_rgba(223,242,90,0.95)]"
+        className="grid h-14 w-14 place-items-center rounded-full bg-lime font-mono text-sm font-semibold text-ink shadow-[0_0_32px_-6px_rgba(223,242,90,0.95)] hover:bg-gold"
       >
         gm
       </button>
