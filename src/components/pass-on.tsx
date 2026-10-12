@@ -16,6 +16,7 @@ export function PassOn({
   image,
   kicker = "PASS IT ON",
   cardSrc,
+  onPassed,
 }: {
   title: string;
   line: string;
@@ -23,6 +24,7 @@ export function PassOn({
   image?: string;
   kicker?: string;
   cardSrc?: string;
+  onPassed?: () => void;
 }) {
   const [note, setNote] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
@@ -78,6 +80,7 @@ export function PassOn({
               href={x}
               target="_blank"
               rel="noreferrer"
+              onClick={() => onPassed?.()}
               className="rounded-full bg-lime px-4 py-2 text-sm font-medium text-ink"
             >
               Share on X
@@ -86,6 +89,7 @@ export function PassOn({
               href={cast}
               target="_blank"
               rel="noreferrer"
+              onClick={() => onPassed?.()}
               className="rounded-full border border-lime/50 px-4 py-2 text-sm text-lime"
             >
               Cast it
@@ -96,7 +100,10 @@ export function PassOn({
                 void copyText(url).then(
                   (copied) => {
                     setNote(copied ? "Link copied." : "Copy was blocked in this browser.");
-                    if (copied) ring();
+                    if (copied) {
+                      ring();
+                      onPassed?.();
+                    }
                   },
                   () => setNote("Copy was blocked in this browser."),
                 );

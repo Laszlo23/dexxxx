@@ -59,6 +59,11 @@ export const CARDS = {
     title: "Five castles. One coin.",
     line: "Walk a Rare Friend through the clocks. The HOOD is simulated.",
   },
+  mark: {
+    kicker: "THE MARK",
+    title: "Five rooms on the street",
+    line: "Tell a wallet from a picture. The chain scores the room.",
+  },
   gm: {
     kicker: "GM",
     title: "gm from chain 4663",

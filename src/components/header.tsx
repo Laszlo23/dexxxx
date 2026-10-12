@@ -18,6 +18,7 @@ const LINKS = [
   { href: "/bound", label: "Bound" },
   { href: "/trends", label: "Tape" },
   { href: "/rfgame", label: "Hood" },
+  { href: "/mark", label: "Mark" },
 ] as const;
 
 function linkActive(pathname: string, href: string): boolean {
@@ -60,7 +61,7 @@ export function Header() {
               <Link
                 key={link.href}
                 href={link.href}
-                className={`rounded-full px-3 py-1.5 ${
+                className={`rounded-full px-2 py-1.5 ${
                   active ? "bg-lime/15 text-lime" : "text-mist hover:text-paper"
                 }`}
               >

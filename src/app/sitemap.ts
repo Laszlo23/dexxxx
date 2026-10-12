@@ -19,6 +19,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/privacy",
     "/risk",
     "/rfgame",
+    "/mark",
     ...COLLECTIONS.map((collection) => `/collections/${collection.slug}`),
     ...SHARE_POSTS.map((post) => `/share/${post.id}`),
   ];

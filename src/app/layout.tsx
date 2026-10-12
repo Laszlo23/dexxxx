@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import Script from "next/script";
 import { Suspense } from "react";
 import { BRAND } from "@/config/brand";
 import { GmButton } from "@/components/gm-button";
@@ -105,6 +106,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           <main className="flex-1">{children}</main>
           <SiteFooter />
           <GmButton />
+          <Script src="https://doghood.aibusiness.fun/floor/street.js?v=14" strategy="afterInteractive" />
         </Providers>
       </body>
     </html>
